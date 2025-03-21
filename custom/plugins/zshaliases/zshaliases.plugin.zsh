@@ -29,6 +29,8 @@ alias nvim='nvim -p'
 alias df='df -h'
 alias dfx='df -x tmpfs -x devtmpfs -x squashfs'
 
+
+# ``tree'' customization
 function tree() {
   emulate -LR zsh
   local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) .gitignore(.N))
@@ -40,15 +42,14 @@ function tree() {
   command tree "${options[@]}" "$@"
 }
 
+
 # expand aliases following sudo
 alias sudo='sudo '
 
+
 # help
-function help() {
-  run-help "$@"
-}
-alias help='help '
-alias h='help'
+alias run-help='run-help '
+alias help='run-help'
 
 
 # clear
@@ -117,7 +118,6 @@ alias py2='python2'
 # vim / neovim
 alias v='vim'
 alias nvimdiff='command nvim -d'
-alias nvdiff='nvimdiff'
 if command -v nvim > /dev/null; then
   alias vim='nvim'
   alias vimdiff='nvimdiff'
@@ -139,13 +139,9 @@ fi
 # tmux
 if command -v tmux > /dev/null; then
   alias t='tmux'
-  alias tn='tmux new-session'
-  alias tns='tmux new-session -s'
-  alias tnt='tmux new-session -t'
+  alias tns='tmux new-session'
   alias tnw='tmux new-window'
-  alias tnn='tmux new-window -n'
   alias ta='tmux attach-session'
-  alias tat='tmux attach-session -t'
   function tnsw() {
     emulate -L zsh
     local fzf=("${(z)$(__fzfcmd):-fzf}")
@@ -153,53 +149,31 @@ if command -v tmux > /dev/null; then
     tmux list-sessions -F "#{session_group}" | sort -u | FZF_DEFAULT_OPTS="--cycle --height=${(q)FZF_TMUX_HEIGHT:-20%} ${FZF_DEFAULT_OPTS} -1" "${fzf[@]}"
     )}"
     if [[ -n ${session_group} ]]; then
-      tmux new -d -t "${session_group}" \; new-window \; attach
+      tmux new -d -t "${session_group}" ";" new-window ";" attach
     fi
   }
 fi
 
 
 # xclip
-if command -v xclip > /dev/null; then
-  alias cb='xclip -selection clipboard'
-  alias cb1='xclip -selection primary'
-  alias cb2='xclip -selection secondary'
-  alias cb-strip='xclip -o -selection clipboard |
-    sed ''s%^[ \t]\+\|[ \t]\+$%%'' |
-    xclip -i -selection clipboard'
-  alias cb1-strip='xclip -o -selection primary |
-    sed ''s%^[ \t]\+\|[ \t]\+$%%'' |
-    xclip -i -selection primary'
-  alias cb2-strip='xclip -o -selection secondary |
-    sed ''s%^[ \t]\+\|[ \t]\+$%%'' |
-    xclip -i -selection secondary'
-  alias cb-strip-l='xclip -o -selection clipboard |
-    sed ''s%^[ \t]\+%%'' |
-    xclip -i -selection clipboard'
-  alias cb1-strip-l='xclip -o -selection primary |
-    sed ''s%^[ \t]\+%%'' |
-    xclip -i -selection primary'
-  alias cb2-strip-l='xclip -o -selection secondary |
-    sed ''s%^[ \t]\+%%'' |
-    xclip -i -selection secondary'
-  alias cb-strip-r='xclip -o -selection clipboard |
-    sed ''s%[ \t]\+$%%'' |
-    xclip -i -selection clipboard'
-  alias cb1-strip-r='xclip -o -selection primary |
-    sed ''s%[ \t]\+$%%'' |
-    xclip -i -selection primary'
-  alias cb2-strip-r='xclip -o -selection secondary |
-    sed ''s%[ \t]\+$%%'' |
-    xclip -i -selection secondary'
-  alias cbcopy='cb'
-  alias cbpaste='cb -o'
-  alias cbclfmt='cbpaste | cb'
+if [[ "${XDG_SESSION_TYPE-}" == "wayland" ]]; then
+  if command -v "wl-copy" > /dev/null && command -v "wl-paste" > /dev/null; then
+    alias cbcopy="wl-copy --trim-newline"
+    alias cbpaste="wl-paste"
+    alias cbclfmt="cbpaste | cbcopy"
+  fi
+else
+  if command -v "xclip" > /dev/null; then
+    alias cbcopy="xclip -selection clipboard"
+    alias cbpaste="xclip -selection clipboard -o"
+    alias cbclfmt="cbpaste | cbcopy"
+  fi
 fi
 
 
 # feh
 if command -v feh > /dev/null; then
-  alias feh-slideshow='feh --auto-zoom --image-bg black --slideshow-delay 8'
+  alias feh-show='feh --auto-zoom --image-bg black --slideshow-delay 8'
 fi
 
 
