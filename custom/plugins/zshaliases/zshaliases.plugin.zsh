@@ -10,6 +10,8 @@ esac
 
 # default command options
 alias cp='cp -iv'
+alias df='df -h'
+alias dfx='df -x tmpfs -x devtmpfs -x squashfs'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
@@ -25,9 +27,6 @@ alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias vim='vim -p'
-alias nvim='nvim -p'
-alias df='df -h'
-alias dfx='df -x tmpfs -x devtmpfs -x squashfs'
 
 
 # ``tree'' customization
@@ -93,12 +92,6 @@ alias dls='ls -dl'
 
 # man
 alias m='man'
-alias mw='man --wildcard'
-alias mx='man --regex'
-alias mk='man --apropos'
-alias mkw='man --apropos --wildcard'
-alias mf='man --whatis'
-alias mfx='man --whatis --regex'
 
 
 # ps
@@ -106,7 +99,9 @@ alias p='ps c w -fj'
 alias psa='ps w -afj'
 alias pse='ps w -efj'
 alias psat='ps w -afj -t "${TTY:-$(tty)}"'
+alias psau='ps w -afj -u "${UID:-$(id -u)}"'
 alias pset='ps w -efj -t "${TTY:-$(tty)}"'
+alias pseu='ps w -efj -t "${UID:-$(id -u)}"'
 
 
 # python
@@ -118,10 +113,6 @@ alias py2='python2'
 # vim / neovim
 alias v='vim'
 alias nvimdiff='command nvim -d'
-if command -v nvim > /dev/null; then
-  alias vim='nvim'
-  alias vimdiff='nvimdiff'
-fi
 
 
 # thefuck
@@ -142,31 +133,31 @@ if command -v tmux > /dev/null; then
   alias tns='tmux new-session'
   alias tnw='tmux new-window'
   alias ta='tmux attach-session'
-  function tnsw() {
+  function tmux-attach-new-session-window() {
     emulate -L zsh
-    local fzf=("${(z)$(__fzfcmd):-fzf}")
-    local session_group="${1-$(
-    tmux list-sessions -F "#{session_group}" | sort -u | FZF_DEFAULT_OPTS="--cycle --height=${(q)FZF_TMUX_HEIGHT:-20%} ${FZF_DEFAULT_OPTS} -1" "${fzf[@]}"
+    fzf=("${(z)$(__fzfcmd):-fzf}")
+    session_group="${1-$(
+      tmux list-sessions -F "#{session_group}" | sort -u |
+      FZF_DEFAULT_OPTS="--height=${(q)FZF_TMUX_HEIGHT:-20%} ${FZF_DEFAULT_OPTS} --cycle -1" "${fzf[@]}"
     )}"
-    if [[ -n ${session_group} ]]; then
-      tmux new -d -t "${session_group}" ";" new-window ";" attach
-    fi
+    [[ -n ${session_group} ]] && tmux new -d -t "${session_group}" ";" "new-window" ";" "attach"
   }
+  alias tnsw='tmux-attach-new-session-window'
 fi
 
 
 # xclip
 if [[ "${XDG_SESSION_TYPE-}" == "wayland" ]]; then
   if command -v "wl-copy" > /dev/null && command -v "wl-paste" > /dev/null; then
-    alias cbcopy="wl-copy --trim-newline"
-    alias cbpaste="wl-paste"
-    alias cbclfmt="cbpaste | cbcopy"
+    alias pbcopy="wl-copy --trim-newline"
+    alias pbpaste="wl-paste"
+    alias pbdropfmt="pbpaste | pbcopy"
   fi
 else
   if command -v "xclip" > /dev/null; then
-    alias cbcopy="xclip -selection clipboard"
-    alias cbpaste="xclip -selection clipboard -o"
-    alias cbclfmt="cbpaste | cbcopy"
+    alias pbcopy="xclip -selection clipboard"
+    alias pbpaste="xclip -selection clipboard -o"
+    alias pbdropfmt="pbpaste | pbcopy"
   fi
 fi
 
@@ -181,30 +172,6 @@ fi
 alias wanip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
 alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
 alias wanip='wanip4'
-
-
-# youtube-dl
-if command -v youtube-dl > /dev/null; then
-  typeset -xT YTDL_OPTS ytdl_opts ' '
-  ytdl_opts=(
-    '--geo-bypass'
-    '--ignore-errors'
-    '--max-sleep-interval=5'
-    '--min-sleep-interval=1'
-  )
-  typeset -xT YTDLA_OPTS ytdla_opts ' '
-  ytdla_opts=(
-    '--add-metadata'
-    '--extract-audio'
-    '--playlist-random'
-    '--audio-quality=0'
-    '--metadata-from-title='"'"'^\s*(?:(?P<artist>.+?)(?:\s+[Ff]t\.?|[Ff]eat(?:\.|uring)?\s.+?)?\s+[~|=/+-]+\s+(?:(?P<album>.+?)\s+[~|=/+-]+\s+)?)?(?P<title>.+?)(?:\s+(?:[([](?:\s*(?:[Aa      ]udio|[Ll]yrics?|[Mm]usic|[Oo]nly|(?:[Uu]n)?[Oo]fficial|[Vv]ideo)\s*)+[])])+\s*)*\s*$'"'"
-    '--output="${XDG_MUSIC_DIR:-${HOME}/Music}/%(title)s.%(id)s.%(ext)s"'
-  )
-  alias youtube-dl="youtube-dl ${YTDL_OPTS}"
-  alias ytdl="youtube-dl"
-  alias ytdla="youtube-dl ${YTDLA_OPTS}"
-fi
 
 
 # print the number of arguments supplied

@@ -10,3 +10,7 @@
 	path = custom/plugins/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions
 	branch = master
+[submodule "zsh-kitty"]
+	path = custom/plugins/zsh-kitty
+	url = https://github.com/redxtech/zsh-kitty.git
+	branch = master
