@@ -99,8 +99,8 @@ alias p='ps c w -fj'
 alias psa='ps w -afj'
 alias pse='ps w -efj'
 alias psat='ps w -afj -t "${TTY:-$(tty)}"'
-alias psau='ps w -afj -u "${UID:-$(id -u)}"'
 alias pset='ps w -efj -t "${TTY:-$(tty)}"'
+alias psau='ps w -afj -u "${UID:-$(id -u)}"'
 alias pseu='ps w -efj -t "${UID:-$(id -u)}"'
 
 
@@ -112,7 +112,11 @@ alias py2='python2'
 
 # vim / neovim
 alias v='vim'
-alias nvimdiff='command nvim -d'
+if command -v nvim > /dev/null; then
+  alias nvimdiff='command nvim -d'
+  alias vim='nvim'
+  alias vimdiff='nvimdiff'
+fi
 
 
 # thefuck

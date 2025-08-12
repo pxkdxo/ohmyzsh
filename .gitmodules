@@ -14,3 +14,7 @@
 	path = custom/plugins/zsh-kitty
 	url = https://github.com/redxtech/zsh-kitty.git
 	branch = master
+[submodule "custom/plugins/fast-syntax-highlighting"]
+	path = custom/plugins/fast-syntax-highlighting
+	url = https://github.com/zdharma-continuum/fast-syntax-highlighting
+	branch = master
