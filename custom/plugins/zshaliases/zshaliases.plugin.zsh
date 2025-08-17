@@ -95,7 +95,8 @@ alias m='man'
 
 
 # ps
-alias p='ps c w -fj' 
+alias p='ps c w -Fj' 
+alias psme='ps c w -Fj -u "${USER:-$(id -un)}"'
 alias psa='ps w -afj'
 alias pse='ps w -efj'
 alias psat='ps w -afj -t "${TTY:-$(tty)}"'
