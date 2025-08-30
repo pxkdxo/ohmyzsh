@@ -1,186 +1,184 @@
 # zshoptions.plugin.zsh: Configure preferred options for an interactive shell
 
 # If this is not an interactive shell, abort.
-case $- in
+case "$-" in
   (*i*) ;;
     (*) return ;;
 esac
 
-if [[ -o interactive ]]; then
-  setopt alwaystoend
-  setopt appendcreate
-  setopt autocd
-  setopt autocontinue
-  setopt autonamedirs
-  setopt autopushd
-  setopt autoresume
-  setopt braceccl
-  setopt cbases
-  setopt cdablevars
-  setopt chaselinks
-  setopt completeinword
-  setopt correct
-  setopt cprecedences
-  setopt extendedglob
-  setopt extendedhistory
-  setopt globcomplete
-  setopt globstarshort
-  setopt hashexecutablesonly
-  setopt histallowclobber
-  setopt histexpiredupsfirst
-  setopt histfcntllock
-  setopt histfindnodups
-  setopt histignorealldups
-  setopt histignoredups
-  setopt histignorespace
-  setopt histlexwords
-  setopt histnostore
-  setopt histreduceblanks
-  setopt histsavenodups
-  setopt histsubstpattern
-  setopt histverify
-  setopt incappendhistory
-  setopt interactivecomments
-  setopt longlistjobs
-  setopt monitor
-  setopt nobeep
-  setopt noclobber
-  setopt noflowcontrol
-  setopt noglobalexport
-  setopt nohup
-  setopt numericglobsort
-  setopt octalzeroes
-  setopt promptsubst
-  setopt pushdignoredups
-  setopt pushdminus
-  setopt pushdtohome
-  setopt rcquotes
-  setopt rematchpcre
-  setopt rmstarsilent
-  setopt sharehistory
-  setopt nowarncreateglobal
-  setopt zle
-  unsetopt aliasfuncdef
-  unsetopt allexport
-  unsetopt bashautolist
-  unsetopt bashrematch
-  unsetopt bsdecho
-  unsetopt chasedots
-  unsetopt combiningchars
-  unsetopt completealiases
-  unsetopt continueonerror
-  unsetopt correctall
-  unsetopt cshjunkiehistory
-  unsetopt cshjunkieloops
-  unsetopt cshjunkiequotes
-  unsetopt cshnullcmd
-  unsetopt cshnullglob
-  unsetopt dvorak
-  unsetopt emacs
-  unsetopt errexit
-  unsetopt errreturn
-  unsetopt forcefloat
-  unsetopt globassign
-  unsetopt globdots
-  unsetopt globsubst
-  unsetopt histnofunctions
-  unsetopt ignorebraces
-  unsetopt ignoreclosebraces
-  unsetopt ignoreeof
-  unsetopt incappendhistorytime
-  unsetopt ksharrays
-  unsetopt kshautoload
-  unsetopt kshglob
-  unsetopt kshoptionprint
-  unsetopt kshtypeset
-  unsetopt kshzerosubscript
-  unsetopt listpacked
-  unsetopt listrowsfirst
-  unsetopt localloops
-  unsetopt localoptions
-  unsetopt localpatterns
-  unsetopt localtraps
-  unsetopt magicequalsubst
-  unsetopt mailwarning
-  unsetopt markdirs
-  unsetopt menucomplete
-  unsetopt noaliases
-  unsetopt noalwayslastprompt
-  unsetopt noappendhistory
-  unsetopt noautolist
-  unsetopt noautomenu
-  unsetopt noautoparamkeys
-  unsetopt noautoparamslash
-  unsetopt noautoremoveslash
-  unsetopt nobadpattern
-  unsetopt nobanghist
-  unsetopt nobareglobqual
-  unsetopt nobgnice
-  unsetopt nocaseglob
-  unsetopt nocasematch
-  unsetopt nocheckjobs
-  unsetopt nodebugbeforecmd
-  unsetopt noequals
-  unsetopt noevallineno
-  unsetopt noexec
-  unsetopt nofunctionargzero
-  unsetopt noglob
-  unsetopt noglobalrcs
-  unsetopt nohashcmds
-  unsetopt nohashdirs
-  unsetopt nohashlistall
-  unsetopt nohistbeep
-  unsetopt nohistsavebycopy
-  unsetopt nolistambiguous
-  unsetopt nolistbeep
-  unsetopt nolisttypes
-  unsetopt nomultibyte
-  unsetopt nomultifuncdef
-  unsetopt nomultios
-  unsetopt nonomatch
-  unsetopt nonotify
-  unsetopt nopromptcr
-  unsetopt nopromptpercent
-  unsetopt nopromptsp
-  unsetopt norcs
-  unsetopt noshortloops
-  unsetopt nounset
-  unsetopt nullglob
-  unsetopt overstrike
-  unsetopt pathdirs
-  unsetopt pathscript
-  unsetopt pipefail
-  unsetopt posixaliases
-  unsetopt posixargzero
-  unsetopt posixbuiltins
-  unsetopt posixcd
-  unsetopt posixidentifiers
-  unsetopt posixjobs
-  unsetopt posixstrings
-  unsetopt posixtraps
-  unsetopt printeightbit
-  unsetopt printexitvalue
-  unsetopt privileged
-  unsetopt promptbang
-  unsetopt pushdsilent
-  unsetopt rcexpandparam
-  unsetopt recexact
-  unsetopt restricted
-  unsetopt rmstarwait
-  unsetopt shfileexpansion
-  unsetopt shglob
-  unsetopt shnullcmd
-  unsetopt shoptionletters
-  unsetopt shwordsplit
-  unsetopt singlecommand
-  unsetopt singlelinezle
-  unsetopt sourcetrace
-  unsetopt sunkeyboardhack
-  unsetopt transientrprompt
-  unsetopt trapsasync
-  unsetopt typesetsilent
-  unsetopt verbose
-  unsetopt vi
-  unsetopt warnnestedvar
-  unsetopt xtrace
-fi
+setopt aliases
+setopt alwayslastprompt
+setopt alwaystoend
+setopt appendcreate
+setopt appendhistory
+setopt autocd
+setopt autocontinue
+setopt autolist
+setopt automenu
+setopt autonamedirs
+setopt autoparamkeys
+setopt autoparamslash
+setopt autopushd
+setopt autoremoveslash
+setopt autoresume
+setopt badpattern
+setopt banghist
+setopt bareglobqual
+setopt bgnice
+setopt braceccl
+setopt caseglob
+setopt casematch
+setopt cbases
+setopt cdablevars
+setopt chaselinks
+setopt checkjobs
+setopt completeinword
+setopt correct
+setopt cprecedences
+setopt debugbeforecmd
+setopt equals
+setopt evallineno
+setopt exec
+setopt extendedglob
+setopt extendedhistory
+setopt functionargzero
+setopt glob
+setopt globalrcs
+setopt globcomplete
+setopt globstarshort
+setopt hashcmds
+setopt hashdirs
+setopt hashexecutablesonly
+setopt hashlistall
+setopt histallowclobber
+setopt histbeep
+setopt histexpiredupsfirst
+setopt histfcntllock
+setopt histfindnodups
+setopt histignorealldups
+setopt histignoredups
+setopt histignorespace
+setopt histlexwords
+setopt histnostore
+setopt histreduceblanks
+setopt histsavebycopy
+setopt histsavenodups
+setopt histsubstpattern
+setopt histverify
+setopt incappendhistory
+setopt interactivecomments
+setopt listambiguous
+setopt listbeep
+setopt listtypes
+setopt longlistjobs
+setopt monitor
+setopt multibyte
+setopt multifuncdef
+setopt multios
+setopt nomatch
+setopt notify
+setopt numericglobsort
+setopt octalzeroes
+setopt promptcr
+setopt promptpercent
+setopt promptsp
+setopt promptsubst
+setopt pushdignoredups
+setopt pushdminus
+setopt pushdtohome
+setopt rcquotes
+setopt rcs
+setopt rematchpcre
+setopt rmstarsilent
+setopt sharehistory
+setopt shortloops
+setopt unset
+setopt zle
+unsetopt aliasfuncdef
+unsetopt allexport
+unsetopt bashautolist
+unsetopt bashrematch
+unsetopt beep
+unsetopt bsdecho
+unsetopt chasedots
+unsetopt clobber
+unsetopt combiningchars
+unsetopt completealiases
+unsetopt continueonerror
+unsetopt correctall
+unsetopt cshjunkiehistory
+unsetopt cshjunkieloops
+unsetopt cshjunkiequotes
+unsetopt cshnullcmd
+unsetopt cshnullglob
+unsetopt dvorak
+unsetopt emacs
+unsetopt errexit
+unsetopt errreturn
+unsetopt flowcontrol
+unsetopt forcefloat
+unsetopt globalexport
+unsetopt globassign
+unsetopt globdots
+unsetopt globsubst
+unsetopt histnofunctions
+unsetopt hup
+unsetopt ignorebraces
+unsetopt ignoreclosebraces
+unsetopt ignoreeof
+unsetopt incappendhistorytime
+unsetopt ksharrays
+unsetopt kshautoload
+unsetopt kshglob
+unsetopt kshoptionprint
+unsetopt kshtypeset
+unsetopt kshzerosubscript
+unsetopt listpacked
+unsetopt listrowsfirst
+unsetopt localloops
+unsetopt localoptions
+unsetopt localpatterns
+unsetopt localtraps
+unsetopt magicequalsubst
+unsetopt mailwarning
+unsetopt markdirs
+unsetopt menucomplete
+unsetopt nullglob
+unsetopt overstrike
+unsetopt pathdirs
+unsetopt pathscript
+unsetopt pipefail
+unsetopt posixaliases
+unsetopt posixargzero
+unsetopt posixbuiltins
+unsetopt posixcd
+unsetopt posixidentifiers
+unsetopt posixjobs
+unsetopt posixstrings
+unsetopt posixtraps
+unsetopt printeightbit
+unsetopt printexitvalue
+unsetopt privileged
+unsetopt promptbang
+unsetopt pushdsilent
+unsetopt rcexpandparam
+unsetopt recexact
+unsetopt restricted
+unsetopt rmstarwait
+unsetopt shfileexpansion
+unsetopt shglob
+unsetopt shnullcmd
+unsetopt shoptionletters
+unsetopt shwordsplit
+unsetopt singlecommand
+unsetopt singlelinezle
+unsetopt sourcetrace
+unsetopt sunkeyboardhack
+unsetopt transientrprompt
+unsetopt trapsasync
+unsetopt typesetsilent
+unsetopt verbose
+unsetopt vi
+unsetopt warncreateglobal
+unsetopt warnnestedvar
+unsetopt xtrace

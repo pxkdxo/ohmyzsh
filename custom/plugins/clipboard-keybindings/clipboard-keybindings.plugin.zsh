@@ -1,30 +1,25 @@
 # clipboard-keybindings.plugin.zsh: define and bind copy-paste ZLE widgets
 
-function clipboard-copy() {
-  clipcopy <<< "${BUFFER}"
+function _zclipcopy() {
+  printf '%s' -- "${BUFFER}" | clipcopy
+  return 0
 }
 
-function clipboard-paste() {
-  local temp=""
-  read -
-  if ! temp="$(clippaste)"; then
-    return "$?"
+function _zclippaste() {
+  local temp
+  if LBUFFER="${LBUFFER}$(clippaste)"; then
+    zle redisplay
+    if typeset -f zle-line-init >/dev/null; then
+      zle zle-line-init
+    fi
   fi
-  # Strip whitespace
-  temp="${temp#"${temp%%[^[:space:]]*}"}"
-  temp="${temp%"${temp##*[^[:space:]]}"}"
-  # Update line editor
-  RBUFFER="${temp}${RBUFFER}" 
-  zle redisplay
-  if typeset -f zle-line-init >/dev/null; then
-    zle zle-line-init
-  fi
+  return 0
 }
 
-zle -N clipboard-copy
-bindkey -M emacs '^[-' clipboard-copy
-bindkey -M viins '^[-' clipboard-copy
+zle -N _zclipcopy
+bindkey -M emacs '^[-' _zclipcopy
+bindkey -M viins '^[-' _zclipcopy
 
-zle -N clipboard-paste
-bindkey -M emacs '^[+' clipboard-paste
-bindkey -M viins '^[+' clipboard-paste
+zle -N _zclippaste
+bindkey -M emacs '^[+' _zclippaste
+bindkey -M viins '^[+' _zclippaste

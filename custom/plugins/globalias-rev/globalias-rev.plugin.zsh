@@ -5,7 +5,7 @@ globalias() {
 }
 zle -N globalias
 
-# press alt-space to expand all aliases (including globals)
+# press alt-space to expand all aliases
 bindkey -M emacs "^[ " globalias
 bindkey -M viins "^[ " globalias
 

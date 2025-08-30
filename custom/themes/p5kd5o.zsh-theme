@@ -72,22 +72,22 @@ ZSH_THEME_GIT_PROMPT_DIRTY_ICON=''
 ZSH_THEME_VIRTUALENV_PREFIX=''
 ZSH_THEME_VIRTUALENV_SUFFIX=''
 
-PROMPT='%(?.%15F.%1F)╭─(%f%10F%n%f%(?.%15F.%1F)@%f%14F%m%f%(?.%15F.%1F)${PROMPT_SEP}%f%13F$(__shrink_path)%f%(?.%15F.%1F))%f${(%%)$(__virtualenv_prompt_info)}${(%%)$(__git_prompt_info)}
-%(?.%15F.%1F)╰%f%(?.%15F%#%f.%1F%#%f %15F%?%f %1F%#%f) '
+PROMPT='%(?.%8F.%1F)╭─(%f%10F%n%f%(?.%8F.%1F)@%f%14F%m%f%(?.%8F.%1F)${PROMPT_SEP}%f%13F$(__shrink_path)%f%(?.%8F.%1F))%f${(%%)$(__virtualenv_prompt_info)}${(%%)$(__git_prompt_info)}
+%(?.%8F.%1F)╰%f%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f) '
 
 ZSH_THEME_GIT_PROMPT_PREFIX='
-%(?.%15F.%1F)├─(%f%10Fgit%f%(?.%15F.%1F)${PROMPT_SEP}%f%14F'
-ZSH_THEME_GIT_PROMPT_CLEAN='%f%(?.%15F.%1F)${PROMPT_SEP}%f${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}'
+%(?.%8F.%1F)├─(%f%10Fgit%f%(?.%8F.%1F)${PROMPT_SEP}%f%14F'
+ZSH_THEME_GIT_PROMPT_CLEAN='%f%(?.%8F.%1F)${PROMPT_SEP}%f${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}'
 ZSH_THEME_GIT_PROMPT_CLEAN_ICON='%12F✓%f'
 #ZSH_THEME_GIT_PROMPT_CLEAN_ICON='%6F%f'
-ZSH_THEME_GIT_PROMPT_DIRTY='%f%(?.%15F.%1F)${PROMPT_SEP}%f${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}'
+ZSH_THEME_GIT_PROMPT_DIRTY='%f%(?.%8F.%1F)${PROMPT_SEP}%f${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}'
 ZSH_THEME_GIT_PROMPT_DIRTY_ICON='%9F✗%f'
 #ZSH_THEME_GIT_PROMPT_DIRTY_ICON='%1F%f'
-ZSH_THEME_GIT_PROMPT_SUFFIX='%(?.%15F.%1F))%f'
+ZSH_THEME_GIT_PROMPT_SUFFIX='%(?.%8F.%1F))%f'
 
 ZSH_THEME_VIRTUALENV_PREFIX='
-%(?.%15F.%1F)├─(%f%10Fenv%f%(?.%15F.%1F)${PROMPT_SEP}%f%14F'
-ZSH_THEME_VIRTUALENV_SUFFIX='%f%(?.%15F.%1F)${PROMPT_SEP}%f%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f%(?.%15F.%1F)${PROMPT_SEP}%f%11F$(__virtualenv_version_info)%f%(?.%15F.%1F))%f'
+%(?.%8F.%1F)├─(%f%10Fenv%f%(?.%8F.%1F)${PROMPT_SEP}%f%14F'
+ZSH_THEME_VIRTUALENV_SUFFIX='%f%(?.%8F.%1F)${PROMPT_SEP}%f%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f%(?.%8F.%1F)${PROMPT_SEP}%f%11F$(__virtualenv_version_info)%f%(?.%8F.%1F))%f'
 
 # ╒╤═╤╤═╛ -
 # ╞╧╡╞╧╛ --

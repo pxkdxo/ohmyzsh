@@ -5,13 +5,13 @@
 # If this is not an interactive shell, abort.
 case $- in
   (*i*) ;;
-  (*) return ;;
+    (*) return ;;
 esac
+
 
 # default command options
 alias cp='cp -iv'
-alias df='df -h'
-alias dfx='df -x tmpfs -x devtmpfs -x squashfs'
+alias df='df --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs -h'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
@@ -22,39 +22,14 @@ alias ip='ip -c'
 alias ls='ls -CFhv --color=auto'
 alias mkdir='mkdir -pv'
 alias mv='mv -iv'
-alias nvim='nvim -p'
 alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias vim='vim -p'
 
 
-# ``tree'' customization
-function tree() {
-  emulate -LR zsh
-  local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) .gitignore(.N))
-  local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}")
-  local -a options=(
-    -lfx -L 2 -Nph --du --dirsfirst --gitignore
-    -I "(${(j:|:)ignore_list[@]%%(\/##\*#)#}"
-  )
-  if [[ -v TREE_OPTIONS ]]; then
-    options+=("${(@s)TREE_OPTIONS}")
-  fi
-  command tree "${options[@]}" "$@"
-}
-
-# Set default options for lsblk output
-lsblk='lsblk --fs --perms --tree'
-
-
 # expand aliases following sudo
 alias sudo='sudo '
-
-
-# help
-alias run-help='run-help '
-alias help='run-help'
 
 
 # clear
@@ -74,26 +49,19 @@ alias j='jobs -lp'
 
 # ls
 alias l='ls'
-alias L='ls -L'
-alias l1='ls -1'
-alias L1='ls -1L'
-alias ll='ls -l'
-alias Ll='ls -Ll'
 alias la='ls -A'
-alias La='ls -AL'
-alias lla='ls -Al'
-alias Lla='ls -ALl'
-alias lr='ls -R'
-alias Lr='ls -LR'
-alias lar='ls -AR'
-alias Lar='ls -ALR'
+alias lr='ls -1R'
 alias lt='ls -1t'
-alias Lt='ls -1Lt'
+alias lar='ls -1AR'
 alias lat='ls -1At'
-alias Lat='ls -1ALt'
-alias llat='ls -Alt'
-alias Llat='ls -ALlt'
-alias dls='ls -dl'
+alias lart='ls -1ARt'
+alias ll='ls -l'
+alias lla='ls -Al'
+alias llr='ls -lR'
+alias llt='ls -lt'
+alias llar='ls -lAR'
+alias llat='ls -lAt'
+alias llart='ls -lARt'
 
 
 # man
@@ -101,81 +69,94 @@ alias m='man'
 
 
 # ps
-alias p='ps c w -Fj' 
-alias psme='ps c w -Fj -u "${USER:-$(id -un)}"'
-alias psa='ps w -afj'
-alias pse='ps w -efj'
-alias psat='ps w -afj -t "${TTY:-$(tty)}"'
-alias pset='ps w -efj -t "${TTY:-$(tty)}"'
-alias psau='ps w -afj -u "${UID:-$(id -u)}"'
-alias pseu='ps w -efj -t "${UID:-$(id -u)}"'
+typeset -gT PS_FORMAT="user,pid,ppid,pgid,sess,jobc,tt,stat,start,time,command=CMD" ps_format ,
+alias p='ps -o "${PS_FORMAT:=user,pid,ppid,pgid,sess,jobc,tt,stat,start,time,command=CMD}"'
+alias pa='p -a'
+alias px='p -x'
+alias pe='p -e'
 
 
 # python
+if command -v python3 > /dev/null
+then
+  alias python='python3'
+elif command -v python2 > /dev/null
+then
+  alias python='python2'
+fi
 alias py='python'
-alias py3='python3'
 alias py2='python2'
+alias py3='python3'
 
 
 # vim / neovim
 alias v='vim'
 if command -v nvim > /dev/null; then
-  alias nvimdiff='command nvim -d'
   alias vim='nvim'
+  alias nvim='nvim -p'
+  alias nvimdiff='nvim -d'
   alias vimdiff='nvimdiff'
 fi
 
 
 # thefuck
 if command -v fuck > /dev/null; then
-  alias fk='fuck'
+  alias f='fuck'
 fi
 
 
-# htop
-if command -v htop > /dev/null; then
+# top
+if command -v btm > /dev/null; then
+  alias top='btm'
+elif command -v gtop > /dev/null; then
+  alias top='gtop'
+elif command -v htop > /dev/null; then
   alias top='htop'
 fi
+
+
+# clipcopy
+alias clipfmt="clippaste | clipcopy"
 
 
 # tmux
 if command -v tmux > /dev/null; then
   alias t='tmux'
-  alias tns='tmux new-session'
-  alias tnw='tmux new-window'
-  alias ta='tmux attach-session'
-  function tmux-attach-new-session-window() {
-    emulate -L zsh
+  alias ta='tmux attach-session -f ignore-size'
+  alias tn='tmux new-session'
+  alias tw='tmux new-window'
+  alias tl='tmux list-sessions' 
+  function tmux-new-session-window() {
+    if (($# != 1)); then
+      >&2 printf 'usage: tmux-attach-new-session-window SESSION_NAME\n' 
+      return 2
+    fi
+    tmux new-session -d -t "$1" ";" "new-window" ";" "attach-session"
+  }
+  function fz-tmux-new-session-window() {
+    emulate -RL zsh
     fzf=("${(z)$(__fzfcmd):-fzf}")
-    session_group="${1-$(
-      tmux list-sessions -F "#{session_group}" | sort -u |
-        FZF_DEFAULT_OPTS="--height=${(q)FZF_TMUX_HEIGHT:-20%} ${FZF_DEFAULT_OPTS} --cycle -1" "${fzf[@]}"
-      )}"
-      [[ -n ${session_group} ]] && tmux new -d -t "${session_group}" ";" "new-window" ";" "attach"
-    }
-  alias tnsw='tmux-attach-new-session-window'
-fi
-
-
-# xclip
-if [[ "${XDG_SESSION_TYPE-}" == "wayland" ]]; then
-  if command -v "wl-copy" > /dev/null && command -v "wl-paste" > /dev/null; then
-    alias pbcopy="wl-copy --trim-newline"
-    alias pbpaste="wl-paste"
-    alias pbdropfmt="pbpaste | pbcopy"
-  fi
-else
-  if command -v "xclip" > /dev/null; then
-    alias pbcopy="xclip -selection clipboard"
-    alias pbpaste="xclip -selection clipboard -o"
-    alias pbdropfmt="pbpaste | pbcopy"
+    if tmux has-session; then
+      session_group="$(
+        tmux list-sessions -F "#S" | sort -u | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${fzf[@]}" --cycle
+      )"
+      if [[ "$#" -eq 0 && -n "${session_group}" ]]; then
+        tmux-new-session-window "${session_group}"
+      fi
+    fi
+    return "$#"
+  }
+  if command -v fzf > /dev/null; then
+    alias tnsw='fz-tmux-new-session-window'
+  else
+    alias tnsw='tmux-new-session-window'
   fi
 fi
 
 
 # feh
 if command -v feh > /dev/null; then
-  alias feh-show='feh --auto-zoom --image-bg black --slideshow-delay 8'
+  alias feh-slideshow='feh --auto-zoom --image-bg black --slideshow-delay 8'
 fi
 
 
@@ -185,8 +166,23 @@ alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
 alias wanip='wanip4'
 
 
-# Run yazi with a temp file
-function y() {
-  emulate -LR zsh
-  yazi "$@" --cwd-file /dev/stderr
+# tree customization
+if command -v tree > /dev/null; then
+  function tree() {
+    emulate -LR zsh
+    local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) .gitignore(.N))
+    local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}") 2> /dev/null
+    local options=(-CFlvI "(${(j:|:)ignore_list[@]%%(\/##\*#)#})")
+    if (( ${+TREE} )); then
+      options=("${(z)TREE}")
+    fi
+    command tree "${options[@]}" "$@"
+  }
+fi
+
+
+# date.iso - print the date and time up to the given precision (format: ISO 8601)
+# usage: date.iso [date|hours|minutes|seconds|ns]
+date.iso () {
+	date "-I${1-}"
 }

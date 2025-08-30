@@ -7,25 +7,22 @@ function __nearest_venv_root ()
 {
   emulate -LR zsh
   setopt extendedglob globassign noglobsubst
-  local REPLY
+  typeset -g REPLY
+  typeset -ag reply
   [[ -d ${1-.} ]] || return
-  REPLY=${1-.}/(../)#(|.)venv/bin/activate(.NY1:A)
-  [[ -n $REPLY ]] || return
-  reply+=("$REPLY")
+  REPLY=${1-.}/(../)#(|.)(|v|virtual)env/bin/activate(.NY1:A)
+  [[ -n "${REPLY}" ]] || return
+  reply+=("${REPLY}")
 }
 
 # venv chpwd hook
-function __chpwd_venv_activate ()
+function __venv_activate ()
 {
   emulate -L zsh
   setopt extendedglob noglobsubst noksharrays unset
-  local REPLY
+  local REPLY=""
   local reply=( )
-  if [[ -v VIRTUAL_ENV ]]
-  then
-    return
-  fi
-  if ! __nearest_venv_root
+  if ! __nearest_venv_root .
   then
     if command -v activate > /dev/null
     then
@@ -33,38 +30,51 @@ function __chpwd_venv_activate ()
     fi
     return
   fi
-  if command -v activate > /dev/null
+  if __nearest_venv_root "$OLDPWD"
   then
-    if __nearest_venv_root "$OLDPWD" && [[ $reply[1] = $reply[2] ]]
+    if [[ $reply[1] = $reply[2] ]]
     then
       return
+    else
+      if command -v activate > /dev/null
+      then
+        unset -f activate
+      fi
     fi
-    unset -f activate
   fi
   trap '
-  case $? in
-    (*)
-      print
-      PROMPT_EOL_MARK='"${(q)PROMPT_EOL_MARK}"'
-      ;|
+  case "$?" in
     (0)
+      print
+      PROMPT_EOL_MARK='\''\n'\''
       print source -- '"${(q)reply[1]}"'
       source -- '"${(q)reply[1]}"'
+      ;;
+    (1)
+      print
+      PROMPT_EOL_MARK='\''\n'\''
+      ;;
+    (2)
+      print
+      PROMPT_EOL_MARK='\''\n'\''
       ;;
     (*)
       function activate ()
       {
         unset -f activate
-        emulate -L zsh
+        emulate -LR zsh
         print source -- '"${(q)reply[1]}"'
-        source '"${(q)reply[1]}"'
+        source -- '"${(q)reply[1]}"'
       }
       print "Run '\''activate'\'' to load the virtual environment"
       ;;
   esac
   ' EXIT
-  PROMPT_EOL_MARK=$'\n'
   print 'Found virtual environment in' "${(q)reply[1]:h:h}"
+  if [[ -v VIRTUAL_ENV ]]
+  then
+    return 3
+  fi
   while print -n 'Activate? [Y/n] ' && read -k 1 -r
   do
     case "${(U)REPLY}" in
@@ -78,4 +88,4 @@ function __chpwd_venv_activate ()
 }
 
 
-chpwd_functions+=(__chpwd_venv_activate)
+chpwd_functions+=(__venv_activate)

@@ -17,13 +17,8 @@
 # Modified to add support for OpenBSD     #
 ###########################################
 
-: ${BATTERY_SHOW_WATTS:=false}
-
 
 if [[ "$OSTYPE" = darwin* ]]; then
-  function get_charger_power() {
-    echo "$(ioreg -rc AppleSmartBattery | grep -o '"Watts"=[0-9]\+' | head -1 | grep -o '[0-9]\+')W "
-  }
   function battery_is_charging() {
     ioreg -rc AppleSmartBattery | command grep -q '^.*"ExternalConnected"\ =\ Yes'
   }
@@ -63,10 +58,7 @@ if [[ "$OSTYPE" = darwin* ]]; then
       fi
       echo "%{$fg[$color]%}[${battery_pct}%%]%{$reset_color%}"
     else
-      if [[ "${BATTERY_SHOW_WATTS}" = "true" ]] ; then
-        watts=$(get_charger_power)
-      fi
-      echo "${watts}${BATTERY_CHARGING-⚡️}"
+      echo "${BATTERY_CHARGING-⚡️}"
     fi
   }
 
