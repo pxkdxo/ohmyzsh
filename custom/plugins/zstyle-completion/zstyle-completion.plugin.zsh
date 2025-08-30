@@ -1,5 +1,7 @@
 # zsh completion styles
 # see zshcompsys(1), zshmodules(1)
+# Patterns form: :completion:(?<function>.*):(?<completer>.*):(?<command>.*):(?<argument>.*):(?<tag>.*)
+
 
 # Rehash upon completion so programs are found immediately after installation
 function _force_rehash() {
@@ -9,6 +11,7 @@ function _force_rehash() {
   fi
   return 1
 }
+
 
 #zstyle ':completion:*' accept-exact '*(N)'
 #zstyle ':completion:*' accept-exact-dirs true
@@ -55,5 +58,6 @@ zstyle ':completion:*:warnings' format '%F{white}--%f %F{red}%Uno matches%u%f %F
 zstyle ':completion:*:*:*:*:processes' command 'ps cww -afj'
 zstyle ':completion:*:*:zcompile:*' ignored-patterns '*(\~|.zwc)'
 zstyle ':completion:*:*:-command-:*:commands' ignored-patterns '*\~'
-zstyle ':completion::(^approximate*):*:functions' ignored-patterns '(.|_[^_])*'
+zstyle ':completion:*:(^approximate*):*:functions' ignored-patterns '(.|_[^_])*'
 
+zstyle ':completion:*:*:kill:*:jobs' verbose no

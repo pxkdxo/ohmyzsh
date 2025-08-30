@@ -5,7 +5,7 @@
 # If this is not an interactive shell, abort.
 case $- in
   (*i*) ;;
-    (*) return ;;
+  (*) return ;;
 esac
 
 # default command options
@@ -33,13 +33,19 @@ alias vim='vim -p'
 function tree() {
   emulate -LR zsh
   local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) .gitignore(.N))
-  local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}") 2> /dev/null
-  local options=(-CFlvI "(${(j:|:)ignore_list[@]%%(\/##\*#)#})")
-  if (( ${+TREE} )); then
-    options=("${(z)TREE}")
+  local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}")
+  local -a options=(
+    -lfx -L 2 -Nph --du --dirsfirst --gitignore
+    -I "(${(j:|:)ignore_list[@]%%(\/##\*#)#}"
+  )
+  if [[ -v TREE_OPTIONS ]]; then
+    options+=("${(@s)TREE_OPTIONS}")
   fi
   command tree "${options[@]}" "$@"
 }
+
+# Set default options for lsblk output
+lsblk='lsblk --fs --perms --tree'
 
 
 # expand aliases following sudo
@@ -143,10 +149,10 @@ if command -v tmux > /dev/null; then
     fzf=("${(z)$(__fzfcmd):-fzf}")
     session_group="${1-$(
       tmux list-sessions -F "#{session_group}" | sort -u |
-      FZF_DEFAULT_OPTS="--height=${(q)FZF_TMUX_HEIGHT:-20%} ${FZF_DEFAULT_OPTS} --cycle -1" "${fzf[@]}"
-    )}"
-    [[ -n ${session_group} ]] && tmux new -d -t "${session_group}" ";" "new-window" ";" "attach"
-  }
+        FZF_DEFAULT_OPTS="--height=${(q)FZF_TMUX_HEIGHT:-20%} ${FZF_DEFAULT_OPTS} --cycle -1" "${fzf[@]}"
+      )}"
+      [[ -n ${session_group} ]] && tmux new -d -t "${session_group}" ";" "new-window" ";" "attach"
+    }
   alias tnsw='tmux-attach-new-session-window'
 fi
 
@@ -179,7 +185,8 @@ alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
 alias wanip='wanip4'
 
 
-# print the number of arguments supplied
-function nargs() {
-  print "$#"
+# Run yazi with a temp file
+function y() {
+  emulate -LR zsh
+  yazi "$@" --cwd-file /dev/stderr
 }
