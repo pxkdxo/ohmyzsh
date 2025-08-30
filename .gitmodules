@@ -1,6 +1,6 @@
 [submodule "custom/plugins/fast-syntax-highlighting"]
 	path = custom/plugins/fast-syntax-highlighting
-	url = https://github.com/zdharma-continuum/fast-syntax-highlighting.git
+	url = https://github.com/zdharma-continuum/fast-syntax-highlighting
 	branch = master
 [submodule "custom/plugins/zsh-autosuggestions"]
 	path = custom/plugins/zsh-autosuggestions
@@ -16,5 +16,5 @@
 	branch = master
 [submodule "custom/plugins/zsh-kitty"]
 	path = custom/plugins/zsh-kitty
-	url = https://github.com/redxtech/zsh-kitty.git
+	url = https://github.com/redxtech/zsh-kitty
 	branch = master

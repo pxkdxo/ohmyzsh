@@ -26,12 +26,7 @@ alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias vim='vim -p'
-
-
-# expand aliases following sudo
-alias sudo='sudo '
-
-
+alias df='df --exclude-type=tmpfs'
 # clear
 alias c='clear'
 
@@ -108,10 +103,10 @@ fi
 # top
 if command -v btm > /dev/null; then
   alias top='btm'
-elif command -v gtop > /dev/null; then
-  alias top='gtop'
 elif command -v htop > /dev/null; then
   alias top='htop'
+elif command -v gtop > /dev/null; then
+  alias top='gtop'
 fi
 
 

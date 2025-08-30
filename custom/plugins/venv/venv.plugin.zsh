@@ -21,62 +21,47 @@ function __venv_activate ()
   emulate -L zsh
   setopt extendedglob noglobsubst noksharrays unset
   local REPLY=""
-  local reply=( )
-  if ! __nearest_venv_root .
-  then
-    if command -v activate > /dev/null
-    then
+  local reply=()
+  if __nearest_venv_root; then
+    if __nearest_venv_root "$OLDPWD"; then
+      if [[ ${reply[1]} == ${reply[2]} ]]; then
+        return
+      fi
+    fi
+    if command -v activate > /dev/null; then
+      unset -f activate
+    fi
+  else
+    if command -v activate > /dev/null; then
       unset -f activate
     fi
     return
   fi
-  if __nearest_venv_root "$OLDPWD"
-  then
-    if [[ $reply[1] = $reply[2] ]]
-    then
-      return
-    else
-      if command -v activate > /dev/null
-      then
-        unset -f activate
-      fi
-    fi
-  fi
   trap '
-  case "$?" in
-    (0)
-      print
-      PROMPT_EOL_MARK='\''\n'\''
-      print source -- '"${(q)reply[1]}"'
-      source -- '"${(q)reply[1]}"'
-      ;;
-    (1)
-      print
-      PROMPT_EOL_MARK='\''\n'\''
-      ;;
-    (2)
-      print
-      PROMPT_EOL_MARK='\''\n'\''
-      ;;
-    (*)
-      function activate ()
-      {
-        unset -f activate
-        emulate -LR zsh
-        print source -- '"${(q)reply[1]}"'
-        source -- '"${(q)reply[1]}"'
-      }
-      print "Run '\''activate'\'' to load the virtual environment"
-      ;;
-  esac
+  local status="$?"
+  if test "$((status))" -le 2; then
+    print
+    PROMPT_EOL_MARK='\''\n'\''
+  fi
+  if test "$((status))" -le 0; then
+    print source -- '"${(q)reply[1]}"'
+    source -- '"${(q)reply[1]}"'
+    return 0
+  fi
+  function activate ()
+  {
+    unset -f activate
+    emulate -LR zsh
+    print source -- '"${(q)reply[1]}"'
+    source -- '"${(q)reply[1]}"'
+  }
+  print "Run '\''activate'\'' to load the virtual environment"
   ' EXIT
   print 'Found virtual environment in' "${(q)reply[1]:h:h}"
-  if [[ -v VIRTUAL_ENV ]]
-  then
+  if [[ -v VIRTUAL_ENV ]]; then
     return 3
   fi
-  while print -n 'Activate? [Y/n] ' && read -k 1 -r
-  do
+  while print -n 'Activate? [Y/n] ' && read -k 1 -r REPLY; do
     case "${(U)REPLY}" in
       (Y) return 0 ;;
       (N) return 1 ;;
