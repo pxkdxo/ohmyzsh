@@ -18,3 +18,7 @@
 	path = custom/plugins/zsh-kitty
 	url = https://github.com/redxtech/zsh-kitty
 	branch = master
+[submodule "custom/plugins/zsh-history-substring-search"]
+	path = custom/plugins/zsh-history-substring-search
+	url = https://github.com/zsh-users/zsh-history-substring-search
+	branch = master
