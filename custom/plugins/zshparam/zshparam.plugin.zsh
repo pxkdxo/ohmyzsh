@@ -4,10 +4,10 @@
 typeset -g LISTMAX=0
 typeset -g DIRSTACKSIZE=10
 typeset -g CORRECT_IGNORE='_*'
-typeset -g CORRECT_IGNORE_FILE='(.*|*~)'
-typeset -g HISTSIZE=9999
-typeset -g SAVEHIST=9999
-typeset -g HISTORY_IGNORE='([[:blank:]]*|*/...([/;&|[:space:]]*)#)'
+typeset -g CORRECT_IGNORE_FILE='*~'
+typeset -g HISTSIZE=20000
+typeset -g SAVEHIST=10000
+typeset -g HISTORY_IGNORE='(|fc|fg|bg|*/...(|/(*/)##))(|[[:blank:]]*)(|[;&|[:space:]]*)'
 typeset -g NULLCMD="${NULLCMD:-cat}"
 typeset -g READNULLCMD="${READNULLCMD:-cat}"
 typeset -g PROMPT_EOL_MARK='%S#%s'
@@ -22,6 +22,6 @@ typeset -gH SPROMPT='${(%%)sprompt[@]}'
 
 zshaddhistory() {
   emulate -L zsh
-  setopt extendedglob
-  [[ $1 != ${~HISTORY_IGNORE} ]]
+  setopt rematch_pcre
+  [[ $1 != ${HISTORY_IGNORE} ]]
 }
