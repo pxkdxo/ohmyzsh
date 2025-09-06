@@ -25,7 +25,6 @@ alias mv='mv -iv'
 alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
-alias vim='vim -p'
 alias df='df --exclude-type=tmpfs'
 # clear
 alias c='clear'
@@ -88,7 +87,6 @@ alias py3='python3'
 alias v='vim'
 if command -v nvim > /dev/null; then
   alias vim='nvim'
-  alias nvim='nvim -p'
   alias nvimdiff='nvim -d'
   alias vimdiff='nvimdiff'
 fi
