@@ -1,63 +1,66 @@
 # venv.plugin.zsh
+#
+# Set up a hook that offers to load any venv found on the path to our working directory
+
+# https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
+0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
+0="${${(M)0:#/*}:-$PWD/$0}"
 
 # Find the nearest ancestor of a directory with a virtual env as a child.
 # If called with no arguments, operate on the current working directory.
 # Upon success, the result is appended to the ``reply'' array.
-function __nearest_venv_root ()
-{
+function __find_nearest_venv_root() {
   emulate -LR zsh
   setopt extendedglob globassign noglobsubst
-  typeset -g REPLY
-  typeset -ag reply
-  [[ -d ${1-.} ]] || return
-  REPLY=${1-.}/(../)#(|.)(|v|virtual)env/bin/activate(.NY1:A)
-  [[ -n "${REPLY}" ]] || return
-  reply+=("${REPLY}")
+  local RESULT
+  typeset -A -g result
+  if ! [[ -d ${1-.} ]]; then
+    return 1
+  fi
+  RESULT=${1-.}/(../)#(|.)(|v|virtual)env/bin/activate(.NY1:A)
+  if ! [[ -n "${RESULT}" ]]; then
+    return 1
+  fi
+  result[${1-.}]="${RESULT}"
 }
 
-# venv chpwd hook
-function __venv_activate ()
-{
+
+# check if we've encountered a new nearest venv
+function __venv_hook() {
   emulate -L zsh
   setopt extendedglob noglobsubst noksharrays unset
-  local REPLY=""
-  local reply=()
-  if __nearest_venv_root; then
-    if __nearest_venv_root "$OLDPWD"; then
-      if [[ ${reply[1]} == ${reply[2]} ]]; then
-        return
+  set -o verbose
+  local -A result=()
+  if __find_nearest_venv_root; then
+    if [[ -v VIRTUAL_ENV ]] && [[ "${VIRTUAL_ENV}" == "${result[.]}" ]]; then
+      return 0
+    fi
+    if [[ "${PWD}" != "${OLDPWD}" ]] && __find_nearest_venv_root "${OLDPWD}"; then
+      if [[ "${result[${OLDPWD}]}" == "${result[.]}" ]]; then
+        return 0
       fi
     fi
-    if command -v activate > /dev/null; then
+    if typeset -f activate > /dev/null; then
       unset -f activate
     fi
   else
-    if command -v activate > /dev/null; then
+    if typeset -f activate > /dev/null; then
       unset -f activate
     fi
-    return
-  fi
-  trap '
-  local status="$?"
-  if test "$((status))" -le 2; then
-    print
-    PROMPT_EOL_MARK='\''\n'\''
-  fi
-  if test "$((status))" -le 0; then
-    print source -- '"${(q)reply[1]}"'
-    source -- '"${(q)reply[1]}"'
     return 0
   fi
-  function activate ()
-  {
-    unset -f activate
-    emulate -LR zsh
-    print source -- '"${(q)reply[1]}"'
-    source -- '"${(q)reply[1]}"'
-  }
-  print "Run '\''activate'\'' to load the virtual environment"
-  ' EXIT
-  print 'Found virtual environment in' "${(q)reply[1]:h:h}"
+  print 'Found virtual environment in' "${(q)result[.]:h:h}"
+  __venv_found "${result[.]}"
+}
+
+
+# notify user and prompt for activation
+function __venv_found() {
+  emulate -L zsh
+  setopt extendedglob noglobsubst noksharrays unset
+  set -o verbose
+  local REPLY
+  trap '__venv_return '"${(q)1}"' "$?"' EXIT
   if [[ -v VIRTUAL_ENV ]]; then
     return 3
   fi
@@ -73,4 +76,35 @@ function __venv_activate ()
 }
 
 
-chpwd_functions+=(__venv_activate)
+# return to the interactive user
+function __venv_return() {
+  emulate zsh
+  set -o verbose
+  eval '
+  function activate() {
+    unset -f activate
+    emulate -LR zsh
+    print source -- '"${(q)1}"'
+    source -- '"${(q)1}"'
+  }'
+  if test "$2" -lt 3; then
+    print
+    PROMPT_EOL_MARK='\n'
+  fi
+  if test "$2" -gt 0; then
+    print "Run ''activate'' to load the virtual environment"
+  else
+    activate
+  fi
+}
+
+
+autoload -U add-zsh-hook
+add-zsh-hook chpwd __venv_hook
+
+
+venv () {
+	emulate -L zsh
+	set -x
+	python3 -m venv "${1-./.venv/}"
+}

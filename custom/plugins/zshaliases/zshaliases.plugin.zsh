@@ -87,7 +87,8 @@ alias py3='python3'
 alias v='vim'
 if command -v nvim > /dev/null; then
   alias vim='nvim'
-  alias vimdiff='nvim -d'
+  alias nvimdiff='nvim -d'
+  alias vimdiff='nvimdiff'
 fi
 
 

@@ -1,5 +1,5 @@
 # p5kd5o.zsh-theme
-# smooth multi-line prompt
+# nice multi-line prompt
 
 zmodload zsh/terminfo
 
@@ -59,41 +59,34 @@ function __virtualenv_prompt_fix() {
   fi
 }
 
-precmd_functions+=(__virtualenv_prompt_fix)
+autoload -U add-zsh-hook
+add-zsh-hook precmd __virtualenv_prompt_fix
 
-PROMPT=''
-PROMPT_SEP=':'
-ZSH_THEME_GIT_PROMPT_PREFIX=''
-ZSH_THEME_GIT_PROMPT_SUFFIX=''
-ZSH_THEME_GIT_PROMPT_CLEAN=''
-ZSH_THEME_GIT_PROMPT_DIRTY=''
-ZSH_THEME_GIT_PROMPT_CLEAN_ICON=''
-ZSH_THEME_GIT_PROMPT_DIRTY_ICON=''
-ZSH_THEME_VIRTUALENV_PREFIX=''
-ZSH_THEME_VIRTUALENV_SUFFIX=''
+typeset -g -A psvar2=()
+psvar2[fg_expr]='%(?.%8F.%1F)'
+psvar2[sep]=':'
 
-PROMPT='%(?.%8F.%1F)╭─(%f%10F%n%f%(?.%8F.%1F)@%f%14F%m%f%(?.%8F.%1F)${PROMPT_SEP}%f%13F$(__shrink_path)%f%(?.%8F.%1F))%f${(%%)$(__virtualenv_prompt_info)}${(%%)$(__git_prompt_info)}
-%(?.%8F.%1F)╰%f%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f) '
+PROMPT="\
+${psvar2[fg_expr]}╭─((%f%10F%n%f${psvar2[fg_expr]}@%f%14F%m%f${psvar2[fg_expr]}${psvar2[sep]}%f%13F\$(__shrink_path)%f${psvar2[fg_expr]})%f\${(%%)\$(__virtualenv_prompt_info)}\${(%%)\$(__git_prompt_info)}
+${psvar2[fg_expr]}╰%f%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f) "
 
 ZSH_THEME_GIT_PROMPT_PREFIX='
-%(?.%8F.%1F)├─(%f%10Fgit%f%(?.%8F.%1F)${PROMPT_SEP}%f%14F'
-ZSH_THEME_GIT_PROMPT_CLEAN='%f%(?.%8F.%1F)${PROMPT_SEP}%f${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}'
-ZSH_THEME_GIT_PROMPT_CLEAN_ICON='%12F✓%f'
-#ZSH_THEME_GIT_PROMPT_CLEAN_ICON='%6F%f'
-ZSH_THEME_GIT_PROMPT_DIRTY='%f%(?.%8F.%1F)${PROMPT_SEP}%f${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}'
-ZSH_THEME_GIT_PROMPT_DIRTY_ICON='%9F✗%f'
-#ZSH_THEME_GIT_PROMPT_DIRTY_ICON='%1F%f'
-ZSH_THEME_GIT_PROMPT_SUFFIX='%(?.%8F.%1F))%f'
+${psvar2[fg_expr]}├─(%f%10Fgit%f${psvar2[fg_expr]}${psvar2[sep]}%f%14F'
+ZSH_THEME_GIT_PROMPT_CLEAN='%f${psvar2[fg_expr]}${psvar2[sep]}%f${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}'
+ZSH_THEME_GIT_PROMPT_CLEAN_ICON='%12F%f' 
+ZSH_THEME_GIT_PROMPT_DIRTY='%f${psvar2[fg_expr]}${psvar2[sep]}%f${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}'
+ZSH_THEME_GIT_PROMPT_DIRTY_ICON='%9F%f'
+ZSH_THEME_GIT_PROMPT_SUFFIX='${psvar2[fg_expr]})%f'
 
 ZSH_THEME_VIRTUALENV_PREFIX='
-%(?.%8F.%1F)├─(%f%10Fenv%f%(?.%8F.%1F)${PROMPT_SEP}%f%14F'
-ZSH_THEME_VIRTUALENV_SUFFIX='%f%(?.%8F.%1F)${PROMPT_SEP}%f%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f%(?.%8F.%1F)${PROMPT_SEP}%f%11F$(__virtualenv_version_info)%f%(?.%8F.%1F))%f'
+${psvar2[fg_expr]}├─(%f%10Fenv%f${psvar2[fg_expr]}${psvar2[sep]}%f%14F'
+ZSH_THEME_VIRTUALENV_SUFFIX='%f${psvar2[fg_expr]}${psvar2[sep]}%f%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f${psvar2[fg_expr]}${psvar2[sep]}%f%11F$(__virtualenv_version_info)%f${psvar2[fg_expr]})%f'
 
 # ╒╤═╤╤═╛ -
 # ╞╧╡╞╧╛ --
 # ╞╡╞╧╛ ---
 # │╞╧╛ ----
 # ╞╧╛ -----
-# ╘╛ p5kd5o
+# ╘╛ P. DeYoreo
 #
 # vi:et:ft=zsh:sts=2:sw=2:tw=0
