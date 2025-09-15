@@ -67,7 +67,7 @@ psvar2[fg_expr]='%(?.%8F.%1F)'
 psvar2[sep]=':'
 
 PROMPT="\
-${psvar2[fg_expr]}╭─((%f%10F%n%f${psvar2[fg_expr]}@%f%14F%m%f${psvar2[fg_expr]}${psvar2[sep]}%f%13F\$(__shrink_path)%f${psvar2[fg_expr]})%f\${(%%)\$(__virtualenv_prompt_info)}\${(%%)\$(__git_prompt_info)}
+${psvar2[fg_expr]}╭─(%f%10F%n%f${psvar2[fg_expr]}@%f%14F%m%f${psvar2[fg_expr]}${psvar2[sep]}%f%13F\$(__shrink_path)%f${psvar2[fg_expr]})%f\${(%%)\$(__virtualenv_prompt_info)}\${(%%)\$(__git_prompt_info)}
 ${psvar2[fg_expr]}╰%f%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f) "
 
 ZSH_THEME_GIT_PROMPT_PREFIX='

@@ -92,7 +92,7 @@ function __venv_return() {
     PROMPT_EOL_MARK='\n'
   fi
   if test "$2" -gt 0; then
-    print "Run ''activate'' to load the virtual environment"
+    print "Run 'activate' to load the virtual environment"
   else
     activate
   fi
