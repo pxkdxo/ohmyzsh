@@ -8,10 +8,38 @@ case $- in
     (*) return ;;
 esac
 
+function coproc_printx() {
+  emulate -LR zsh
+  unsetopt monitor
+  trap '' HUP INT QUIT
+  if command -v bat > /dev/null; then
+    coproc bat --paging=never --style=plain --decorations=always --color=always --language=zsh && disown %%
+  else
+    coproc cat && disown %%
+  fi
+}
+
+function preexec_printx() {
+  emulate -LR zsh
+  typeset -g coproc_printx_pid
+  local pfx='*↝'
+  local cmd="$2"
+  if test -n "$1" && test "$3" != "$1"
+  then
+    if
+      print -p "${cmd}" || { coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"; }
+    then
+      read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;2;3m%s\n' -- "${pfx}" "${cmd}"
+    fi 2> /dev/null
+  fi
+}
+coproc_printx < /dev/null > /dev/null 2>&1 && preexec_functions+=(preexec_printx)
+
 
 # default command options
 alias cp='cp -iv'
-alias df='df --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs -h'
+alias df='df -h'
+alias dfx='df --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
@@ -179,3 +207,7 @@ fi
 date.iso () {
 	date "-I${1-}"
 }
+
+
+# lsblk with filesystem, permissions, and tree view
+alias lsblk='lsblk --fs --perms --tree'
