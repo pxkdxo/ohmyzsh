@@ -23,16 +23,16 @@ function preexec_printx() {
   typeset -g coproc_printx_pid
   local pfx='*↝'
   local cmd="$2"
-  if test -n "$1" && test "$3" != "$1"
+  # if test -n "$1" && test "$3" != "$1"
+  # then
+  if
+    print -p "${cmd}" || {
+      coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"
+    }
   then
-    if
-      print -p "${cmd}" || {
-        coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"
-      }
-    then
-      read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "${cmd}"
-    fi 2> /dev/null
-  fi
+    read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "${cmd}"
+  fi 2> /dev/null
+  #fi
 }
 preexec_functions+=(preexec_printx)
 
@@ -191,14 +191,18 @@ alias wanip='wanip4'
 if command -v tree > /dev/null; then
   function tree() {
     emulate -LR zsh
-    local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) .gitignore(.N))
+    local -T TREE="${TREE}" tree ' '
+    local options=(-CFlv --dirsfirst --filelimit 10000 --gitignore)
+    local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N))
     local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}") 2> /dev/null
-    local options=(-CFlvI "(${(j:|:)ignore_list[@]%%(\/##\*#)#})")
-    if (( ${+TREE} )); then
-      options=("${(z)TREE}")
+    if test "${#ignore_list[@]}" -gt 0; then
+      options+=(-I "(${(j:|:)ignore_list[@]%%(\/##\*#)#})")
     fi
-    command tree "${options[@]}" "$@"
+    command tree "${tree[@]}" "${(@)options:|tree}" "$@"
   }
+  typeset -xT TREE tree ' '
+  tree=(-CFlv --dirsfirst --filelimit 10000 -L 10)
+  alias tree="'tree'"
 fi
 
 
