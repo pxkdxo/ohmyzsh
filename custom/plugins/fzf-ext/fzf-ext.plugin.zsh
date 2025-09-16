@@ -3,30 +3,30 @@
 
 
 # Kill processes
-function fzkill() {
+function fz-kill() {
   emulate -LR zsh
-  local usage='fzkill [-s SIG_NAME] SEARCH'
+  local usage='fz-kill [-s SIG_NAME] [INITIAL_SEARCH]'
   local fzf=("${(z)$(__fzfcmd):-fzf}")
-  local ps=(ps -e -o user,pid,ppid,start,tty,time,command=CMD)
-  local kill_prefix=(kill)
-  local kill_signal="KILL"
+  local ps=(ps -e -o user,pid,start,tty,time,command=CMD)
+  local kill_cmd=(kill)
+  local kill_sig="TERM"
   local opt
   while getopts ':hs:' opt; do
     case "${opt}" in
       'h')
-        >&2 printf 'usage: %s\n' "${usage}"
-        return 0
+        printf 'usage: %s\n' "${usage}"
+        return 2
         ;;
       's')
-        kill_signal="${OPTARG}"
+        kill_sig="${OPTARG}"
         ;;
       '?')
-        >&2 printf 'fzkill: -%c: invalid option\n' "${OPTARG}"
+        >&2 printf 'fz-kill: -%c: invalid option\n' "${OPTARG}"
         >&2 printf 'usage: %s\n' "${usage}"
         return 2
         ;;
       ':')
-        >&2 printf 'fzkill: -%c: missing required argument\n' "${OPTARG}"
+        >&2 printf 'fz-kill: -%c: missing required argument\n' "${OPTARG}"
         >&2 printf 'usage: %s\n' "${usage}"
         return 2
         ;;
@@ -34,42 +34,62 @@ function fzkill() {
   done
   shift "$((OPTIND - 1))"
   if test "$#" -gt 1; then
-    >&2 printf 'fzkill: too many arguments\n' "${usage}"
+    >&2 printf 'fz-kill: too many arguments\n'
     >&2 printf 'usage: %s\n' "${usage}"
     return 2
   fi
-  kill_prefix+=(-s "${kill_signal}")
+  kill_cmd+=('-s' "${kill_sig}")
   fzf+=(
     --multi
     --accept-nth=2
     --header-lines=1
+    --header="* [Select Process: <Tab>] [Kill Selected: <C-x>] [Refresh Processes: <C-r>] [Print Selection & Exit: <Return>] [Clear Selection & Exit: <Esc>] *"
     --bind='enter:accept'
-    --bind='ctrl-r:reload('"${ps}"')'
-    --bind='ctrl-x:execute('"${kill_prefix}"' {+2})+clear-multi+reload('"${ps}"')'
-    --header='<Tab> to Select / <Ctrl-X> to Kill / <Ctrl-R> to Reload / <Enter> to Print / <Esc> to Abort'
+    --bind='ctrl-x:execute('"${(j: :)${(q)kill_cmd[@]}}"' {+2})+clear-multi+reload('"${(j: :)${(q)ps[@]}}"')'
+    --bind='change:reload('"${(j: :)${(q)ps[@]}}"')'
+    --bind='ctrl-r:reload('"${(j: :)${(q)ps[@]}}"')'
+    --bind='ctrl-/:change-preview-window(down,25%,follow,nowrap,noinfo|hidden)'
     --preview='top -pid {2}'
-    --preview-window='down,25%,follow,nowrap,noinfo'
-    --query "$1"
+    --preview-window='hidden'
+    --wrap
   )
-  "${(@)ps}" | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${(@)fzf}"
+  if test "$#" -eq 1; then
+    fzf+=('--query' "$1")
+  fi
+  "${ps[@]}" | "${fzf[@]}"
 }
 
 
 # Find files (ripgrep)
-function fzgrep() {
+function fz-grep() {
   emulate -LR zsh
   setopt extendedglob
-  local -xT FZF_DEFAULT_COMMAND fzf_default_command=("${(q)rg[@]}" '--files-with-matches' '--' "${(q)@}") ' '
-  local rg=(rg --color=never --no-column --no-heading --hidden --no-line-number)
+
+  local -xT FZF_DEFAULT_COMMAND fzf_default_command=() ' '
+  local usage='fz-grep [PATTERN [PATH [...]]]'
   local fzf=("${(z)$(__fzfcmd):-fzf}")
+  local rg=(rg --no-column --no-heading --color=never --hidden --follow)
   local preview=(cat -b)
-  local IFS=$' \t\n'
-
-  if test "$#" -lt 1; then
-    >&2 print -f 'usage: %s SEARCH [PATH ...]\n' -- "$0"
-    return 2
-  fi 
-
+  local opt
+  while getopts ':h:' opt; do
+    case "${opt}" in
+      'h')
+        printf 'usage: %s\n' "${usage}"
+        return 2
+        ;;
+      '?')
+        >&2 printf 'fz-kill: -%c: invalid option\n' "${OPTARG}"
+        >&2 printf 'usage: %s\n' "${usage}"
+        return 2
+        ;;
+      ':')
+        >&2 printf 'fz-kill: -%c: missing required argument\n' "${OPTARG}"
+        >&2 printf 'usage: %s\n' "${usage}"
+        return 2
+        ;;
+    esac
+  done
+  shift "$((OPTIND - 1))"
   if command -v bat; then
     preview=(bat --color='always' --paging='never' --style='auto')
   elif command -v nvimpager; then
@@ -85,10 +105,11 @@ function fzgrep() {
       esac
   fi > /dev/null
 
+  fzf_default_command=("${(q)rg[@]}" --files-with-matches -- "${1-.+}" "${(q)@:2}")
   fzf+=(
-    --bind="change:reload:${${(q)rg[@]}[*]} --files-with-matches -- {q} ${2+${(q)@:2}}"
-    --query="${1:+${(q)1}}"
     --disabled
+    --query="${1-.+}"
+    --bind="change:reload:${(j: :)${(q)rg[@]}} --files-with-matches -- {q} ${(j: :)${(q)@:2}}"
     --bind='ctrl-j:replace-query+print-query'
     --bind='ctrl-k:kill-line'
     --bind='ctrl-c:abort'
@@ -98,19 +119,17 @@ function fzgrep() {
     --preview-window='top:60%'
     --layout='reverse-list'
     --preview="{
-      ${${(q)preview[@]}[*]} -- {} |
-        ${${(q)rg[@]}[*]} --color=always --passthru -- {q} ||
-        ${${(q)rg[@]}[*]} --color=always --passthru -- {q} {}
+      ${(j: :)${(q)preview[@]}} -- {} |
+        ${(j: :)${(q)rg[@]}} --color=always --passthru -- {q} ||
+        ${(j: :)${(q)rg[@]}} --color=always --passthru -- {q} {}
     } 2> /dev/null"
   )
   "${fzf[@]}"
 }
 
 # find man pages
-fzman () {
-
+function fz-man () {
   emulate -LR zsh
-
   local -xT FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" fzf_default_opts ' '
   local -xT FZF_DEFAULT_COMMAND="${FZF_DEFAULT_COMMAND}" fzf_default_command ' '
   local -a fzf=(
@@ -149,3 +168,4 @@ fzman () {
     man -- "${selected}"
   fi
 }
+
