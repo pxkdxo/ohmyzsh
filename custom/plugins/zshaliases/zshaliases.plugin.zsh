@@ -18,7 +18,6 @@ function coproc_printx() {
     coproc cat && disown %%
   fi
 }
-
 function preexec_printx() {
   emulate -LR zsh
   typeset -g coproc_printx_pid
@@ -27,14 +26,15 @@ function preexec_printx() {
   if test -n "$1" && test "$3" != "$1"
   then
     if
-      print -p "${cmd}" || { coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"; }
+      print -p "${cmd}" || {
+        coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"
+      }
     then
-      read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;2;3m%s\n' -- "${pfx}" "${cmd}"
+      read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "${cmd}"
     fi 2> /dev/null
   fi
 }
-coproc_printx < /dev/null > /dev/null 2>&1 && preexec_functions+=(preexec_printx)
-
+preexec_functions+=(preexec_printx)
 
 # default command options
 alias cp='cp -iv'
