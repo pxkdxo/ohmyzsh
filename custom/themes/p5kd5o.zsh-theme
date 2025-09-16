@@ -63,24 +63,25 @@ autoload -U add-zsh-hook
 add-zsh-hook precmd __virtualenv_prompt_fix
 
 typeset -g -A psvar2=()
-psvar2[fg_expr]='%(?.%8F.%1F)'
-psvar2[sep]=':'
+PS_FG='%(?.%8F.%1F)%B'
+PS_FG_OFF='%f%b'
+PS_SEP='%B:%b'
 
 PROMPT="\
-${psvar2[fg_expr]}╭─(%f%10F%n%f${psvar2[fg_expr]}@%f%14F%m%f${psvar2[fg_expr]}${psvar2[sep]}%f%13F\$(__shrink_path)%f${psvar2[fg_expr]})%f\${(%%)\$(__virtualenv_prompt_info)}\${(%%)\$(__git_prompt_info)}
-${psvar2[fg_expr]}╰%f%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f) "
+${PS_FG}╭─(${PS_FG_OFF}%10F%n%f${PS_FG}@${PS_FG_OFF}%14F%m%f${PS_FG}${PS_SEP}${PS_FG_OFF}%13F\$(__shrink_path)%f${PS_FG})${PS_FG_OFF}\${(%%)\$(__virtualenv_prompt_info)}\${(%%)\$(__git_prompt_info)}
+${PS_FG}╰${PS_FG_OFF}%B%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f)%b "
 
-ZSH_THEME_GIT_PROMPT_PREFIX='
-${psvar2[fg_expr]}├─(%f%10Fgit%f${psvar2[fg_expr]}${psvar2[sep]}%f%14F'
-ZSH_THEME_GIT_PROMPT_CLEAN='%f${psvar2[fg_expr]}${psvar2[sep]}%f${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}'
-ZSH_THEME_GIT_PROMPT_CLEAN_ICON='%12F%f' 
-ZSH_THEME_GIT_PROMPT_DIRTY='%f${psvar2[fg_expr]}${psvar2[sep]}%f${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}'
-ZSH_THEME_GIT_PROMPT_DIRTY_ICON='%9F%f'
-ZSH_THEME_GIT_PROMPT_SUFFIX='${psvar2[fg_expr]})%f'
+ZSH_THEME_GIT_PROMPT_PREFIX="
+${PS_FG}├─(${PS_FG_OFF}%10Fgit%f${PS_FG}${PS_SEP}${PS_FG_OFF}%14F"
+ZSH_THEME_GIT_PROMPT_CLEAN_ICON="%12F%f" 
+ZSH_THEME_GIT_PROMPT_DIRTY_ICON="%9F%f"
+ZSH_THEME_GIT_PROMPT_SUFFIX="${PS_FG})${PS_FG_OFF}"
+ZSH_THEME_GIT_PROMPT_DIRTY="%f${PS_FG}${PS_SEP}${PS_FG_OFF}${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}"
+ZSH_THEME_GIT_PROMPT_CLEAN="%f${PS_FG}${PS_SEP}${PS_FG_OFF}${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}"
 
-ZSH_THEME_VIRTUALENV_PREFIX='
-${psvar2[fg_expr]}├─(%f%10Fenv%f${psvar2[fg_expr]}${psvar2[sep]}%f%14F'
-ZSH_THEME_VIRTUALENV_SUFFIX='%f${psvar2[fg_expr]}${psvar2[sep]}%f%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f${psvar2[fg_expr]}${psvar2[sep]}%f%11F$(__virtualenv_version_info)%f${psvar2[fg_expr]})%f'
+ZSH_THEME_VIRTUALENV_PREFIX="
+${PS_FG}├─(${PS_FG_OFF}%10Fenv%f${PS_FG}${PS_SEP}${PS_FG_OFF}%14F"
+ZSH_THEME_VIRTUALENV_SUFFIX="%f${PS_FG}${PS_SEP}${PS_FG_OFF}%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f${PS_FG}${PS_SEP}${PS_FG_OFF}%11F$(__virtualenv_version_info)%f${PS_FG})${PS_FG_OFF}"
 
 # ╒╤═╤╤═╛ -
 # ╞╧╡╞╧╛ --
