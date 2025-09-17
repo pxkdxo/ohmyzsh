@@ -23,12 +23,15 @@ function preexec_printx() {
   typeset -g coproc_printx_pid
   local pfx='*↝'
   local cmd="$2"
+  if [[ "$2" == "$1" ]]; then
+    return 0
+  fi
   if
-    print -p -- "${cmd}" || {
-      coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"
+    print -p -- "$2" || {
+      coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "$2"
     }
   then
-    read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "${cmd}"
+    read -p -r 2 && print -f '\e[0;1;2;3;90m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "$2"
   fi 2> /dev/null
 }
 preexec_functions+=(preexec_printx)
