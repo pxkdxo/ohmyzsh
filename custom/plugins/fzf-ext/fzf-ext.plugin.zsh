@@ -7,9 +7,10 @@ function fz-kill() {
   emulate -LR zsh
   local usage='fz-kill [-s SIG_NAME] [INITIAL_SEARCH]'
   local fzf=("${(z)$(__fzfcmd):-fzf}")
-  local ps=(ps -e -o user,pid,start,tty,time,command=CMD)
+  local ps=('ps' '-e' '-o' 'user,pid,ppid,tty,start,cmd')
   local kill_cmd=(kill)
   local kill_sig="TERM"
+  local preview=()
   local opt
   while getopts ':hs:' opt; do
     case "${opt}" in
@@ -32,6 +33,13 @@ function fz-kill() {
         ;;
     esac
   done
+  if test command -v pstree > /dev/null; then
+    preview=(pstree '{2}')
+  elif test command -v lsof > /dev/null; then
+    preview=(lsof -p '{2}')
+  else
+    preview=(top -p '{2}')
+  fi
   shift "$((OPTIND - 1))"
   if test "$#" -gt 1; then
     >&2 printf 'fz-kill: too many arguments\n'
@@ -43,13 +51,13 @@ function fz-kill() {
     --multi
     --accept-nth=2
     --header-lines=1
-    --header="* [Select Process: <Tab>] [Kill Selected: <C-x>] [Refresh Processes: <C-r>] [Print Selection & Exit: <Return>] [Clear Selection & Exit: <Esc>] *"
+    --header="* [Select Processes: <Tab>] [Kill Selected Processes + Exit (SIG${(q)kill_sig}): <C-x>] [Refresh Process List: <C-r>] [Print Selected PIDs + Exit: <Enter>] [Abort: <Esc>] *"
     --bind='enter:accept'
     --bind='ctrl-x:execute('"${(j: :)${(q)kill_cmd[@]}}"' {+2})+clear-multi+reload('"${(j: :)${(q)ps[@]}}"')'
     --bind='change:reload('"${(j: :)${(q)ps[@]}}"')'
     --bind='ctrl-r:reload('"${(j: :)${(q)ps[@]}}"')'
     --bind='ctrl-/:change-preview-window(down,25%,follow,nowrap,noinfo|hidden)'
-    --preview='top -pid {2}'
+    --preview="${(j: :)${(q)preview[@]}}"
     --preview-window='hidden'
     --wrap
   )
@@ -95,28 +103,31 @@ function fz-grep() {
   elif command -v nvimpager; then
     preview=(nvimpager -c --)
   elif command -v highlight; then
-    case "${TERM}" in
-      ((allacrity|linux|st|vte|xterm|kitty|iterm2|tmux)(-*)#)
-        preview=(highlight --force --line-numbers --wrap-no-numbers --out-format='truecolor')
-        ;;
-      (*-256color(-*)#)
-        preview=(highlight --force --line-numbers --wrap-no-numbers --out-format='xterm256')
-        ;;
+    preview=(highlight --force --line-numbers --wrap-no-numbers)
+    case "${COLORTERM}/${TERM}-" in
+      truecolor/*)
+        preview+=(--out-format='truecolor') ;;
+      */xterm-(foot|iterm2|kitty|konsole|mintty)-*)
+        preview+=(--out-format='truecolor') ;;
+      */(alacritty|foot|iterm2|kitty|konsole|mintty|st)-*)
+        preview+=(--out-format='truecolor') ;;
+      */(linux|rxvt|tmux|vte)-256color-*)
+        preview+=(--out-format='xterm256') ;;
       esac
   fi > /dev/null
 
-  fzf_default_command=("${(q)rg[@]}" --files-with-matches -- "${1-.+}" "${(q)@:2}")
+  fzf_default_command=("${(q)rg[@]}" --files-with-matches --no-line-number -- "${1-.+}" "${(q)@:2}")
   fzf+=(
     --disabled
     --query="${1-.+}"
-    --bind="change:reload:${(j: :)${(q)rg[@]}} --files-with-matches -- {q} ${(j: :)${(q)@:2}}"
+    --bind="change:reload:${(j: :)${(q)rg[@]}} --files-with-matches --no-line-number -- {q} ${(j: :)${(q)@:2}}"
     --bind='ctrl-j:replace-query+print-query'
     --bind='ctrl-k:kill-line'
     --bind='ctrl-c:abort'
     --bind='ctrl-x:execute-silent%open -- {}%'
     --bind='alt-x:become%'"${EDITOR:-vi}"' -- {}%'
     --border='sharp'
-    --preview-window='top:60%'
+    --preview-window='right:65%'
     --layout='reverse-list'
     --preview="{
       ${(j: :)${(q)preview[@]}} -- {} |
@@ -126,6 +137,7 @@ function fz-grep() {
   )
   "${fzf[@]}"
 }
+
 
 # find man pages
 function fz-man () {

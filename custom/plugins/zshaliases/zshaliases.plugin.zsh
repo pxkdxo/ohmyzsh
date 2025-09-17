@@ -23,16 +23,13 @@ function preexec_printx() {
   typeset -g coproc_printx_pid
   local pfx='*↝'
   local cmd="$2"
-  # if test -n "$1" && test "$3" != "$1"
-  # then
   if
-    print -p "${cmd}" || {
+    print -p -- "${cmd}" || {
       coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "${cmd}"
     }
   then
     read -p -r cmd && print -f '\e[0;1;3;30m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "${cmd}"
   fi 2> /dev/null
-  #fi
 }
 preexec_functions+=(preexec_printx)
 
@@ -54,6 +51,8 @@ alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias df='df --exclude-type=tmpfs'
+
+
 # clear
 alias c='clear'
 
@@ -91,11 +90,15 @@ alias m='man'
 
 
 # ps
-typeset -gT PS_FORMAT="user,pid,ppid,pgid,sess,jobc,tt,stat,start,time,command=CMD" ps_format ,
-alias p='ps -o "${PS_FORMAT:=user,pid,ppid,pgid,sess,jobc,tt,stat,start,time,command=CMD}"'
-alias pa='p -a'
-alias px='p -x'
-alias pe='p -e'
+typeset -gT PS_FORMAT="user,pid,ppid,pgid,sess,jobc,tt,stat,start,time,command=CMD" ps_format
+alias p='ps -o "${PS_FORMAT}"'
+alias pa='ps -a -o "${PS_FORMAT}"'
+alias px='ps -x -o "${PS_FORMAT}"'
+alias pe='ps -e -o "${PS_FORMAT}"'
+
+
+# lsblk w/ default opts - show filesystems and permissions in a tree
+alias lsblk='lsblk --fs --perms --tree'
 
 
 # python
@@ -117,12 +120,6 @@ if command -v nvim > /dev/null; then
   alias vim='nvim'
   alias nvimdiff='nvim -d'
   alias vimdiff='nvimdiff'
-fi
-
-
-# thefuck
-if command -v fuck > /dev/null; then
-  alias f='fuck'
 fi
 
 
@@ -212,6 +209,7 @@ date.iso () {
 	date "-I${1-}"
 }
 
-
-# lsblk with filesystem, permissions, and tree view
-alias lsblk='lsblk --fs --perms --tree'
+# thefuck
+if command -v fuck > /dev/null; then
+  eval "$(thefuck --alias)" && alias F='fuck'
+fi

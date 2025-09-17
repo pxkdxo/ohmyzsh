@@ -62,7 +62,6 @@ function __virtualenv_prompt_fix() {
 autoload -U add-zsh-hook
 add-zsh-hook precmd __virtualenv_prompt_fix
 
-typeset -g -A psvar2=()
 PS_FG='%(?.%8F.%1F)%B'
 PS_FG_OFF='%f%b'
 PS_SEP='%B:%b'
@@ -81,7 +80,7 @@ ZSH_THEME_GIT_PROMPT_CLEAN="%f${PS_FG}${PS_SEP}${PS_FG_OFF}${ZSH_THEME_GIT_PROMP
 
 ZSH_THEME_VIRTUALENV_PREFIX="
 ${PS_FG}├─(${PS_FG_OFF}%10Fenv%f${PS_FG}${PS_SEP}${PS_FG_OFF}%14F"
-ZSH_THEME_VIRTUALENV_SUFFIX="%f${PS_FG}${PS_SEP}${PS_FG_OFF}%13F$(__shrink_path "${VIRTUAL_ENV:h}")%f${PS_FG}${PS_SEP}${PS_FG_OFF}%11F$(__virtualenv_version_info)%f${PS_FG})${PS_FG_OFF}"
+ZSH_THEME_VIRTUALENV_SUFFIX="%f${PS_FG}${PS_SEP}${PS_FG_OFF}%13F\$(__shrink_path "${VIRTUAL_ENV:h}")%f${PS_FG}${PS_SEP}${PS_FG_OFF}%11F\$(__virtualenv_version_info)%f${PS_FG})${PS_FG_OFF}"
 
 # ╒╤═╤╤═╛ -
 # ╞╧╡╞╧╛ --
