@@ -1,7 +1,6 @@
 # zshoptions.plugin.zsh: Configure preferred options for an interactive shell
 
 # If this is not an interactive shell, abort.
-return
 case "$-" in
   (*i*) ;;
     (*) return ;;
@@ -33,14 +32,11 @@ setopt completeinword
 setopt nocontinueonerror
 setopt correct
 setopt correctall
-#setopt cprecedences
 setopt nocshjunkiehistory
 setopt nocshjunkieloops
 setopt nocshjunkiequotes
 setopt nocshnullcmd
 setopt nocshnullglob
-setopt noerrexit
-setopt noerrreturn
 setopt extendedglob
 setopt extendedhistory
 setopt noforcefloat
@@ -79,14 +75,12 @@ setopt nokshtypeset
 setopt nokshzerosubscript
 setopt listambiguous
 setopt nolistpacked
-setopt listrowsfirst
 setopt nolocaloptions
 setopt longlistjobs
 setopt nomagicequalsubst
 setopt nomailwarning
 setopt nomarkdirs
 setopt nomenucomplete
-setopt monitor
 setopt nomultifuncdef
 setopt nonullglob
 setopt numericglobsort
@@ -105,11 +99,10 @@ setopt noposixstrings
 setopt noposixtraps
 setopt noprinteightbit
 setopt noprintexitvalue
-setopt noprivileged
-setopt nopromptbang
+# setopt promptbang
 setopt promptsubst
 setopt pushdignoredups
-#setopt pushdminus
+# setopt pushdminus
 setopt nopushdsilent
 setopt pushdtohome
 setopt rcexpandparam
@@ -130,6 +123,5 @@ setopt nosinglelinezle
 setopt nosourcetrace
 setopt nosunkeyboardhack
 setopt notransientrprompt
-setopt notrapsasync
-setopt warncreateglobal
-setopt warnnestedvar
+# setopt warncreateglobal
+# setopt warnnestedvar
