@@ -3,6 +3,8 @@
 
 zmodload zsh/terminfo
 
+autoload -U add-zsh-hook
+
 if functions shrink_path > /dev/null; then
   function __shrink_path() {
     local retval="$?"
@@ -59,24 +61,68 @@ function __virtualenv_prompt_fix() {
 autoload -U add-zsh-hook
 add-zsh-hook precmd __virtualenv_prompt_fix
 
-PS_FG='%(?.%8F.%1F)%B'
-PS_FG_OFF='%f%b'
-PS_SEP='%B:%b'
+typeset -g -A psvar_indices=(
+  ['__shrink_path']=$(( ${#psvar[@]} + 1 ))
+  ['__git_prompt_info']=$(( ${#psvar[@]} + 2 ))
+  ['__virtualenv_prompt_info']=$(( ${#psvar[@]} + 3 ))
+  ['__virtualenv_version_info']=$(( ${#psvar[@]} + 4 ))
+  ['"${VIRTUAL_ENV:h}"']=$(( ${#psvar[@]} + 5 ))
+)
 
-PROMPT="${PS_FG}╭─(${PS_FG_OFF}%10F%n%f${PS_FG}@${PS_FG_OFF}%14F%m%f${PS_FG}${PS_SEP}${PS_FG_OFF}%13F"'$(__shrink_path)'"%f${PS_FG})${PS_FG_OFF}"'${(%%)$(__virtualenv_prompt_info)}${(%%)$(__git_prompt_info)}'"
-${PS_FG}╰${PS_FG_OFF}%B%(?.%8F%#%f.%1F%%%f %8F%?%f %1F%#%f)%b "
+function __psvar_update() {
+  emulate -LR zsh
+  local ind
+  local key
+  typeset -g -a psvar
+  typeset -g -A psvar_indices
+  for key ind in "${(kv)psvar_indices[@]}"; do
+    if command -v "${key}" > /dev/null; then
+      psvar[ind]="$("${key}")"
+    else
+      eval "psvar[ind]=${key}"
+    fi
+  done 2> /dev/null
+}
 
-ZSH_THEME_GIT_PROMPT_PREFIX="
-${PS_FG}├─(${PS_FG_OFF}%10Fgit%f${PS_FG}${PS_SEP}${PS_FG_OFF}%14F"
+typeset -g ps_fg_on='%B%(?.%8F.%1F)'
+typeset -g ps_fg_err='%B%(?.%8F.%1F)'
+typeset -g ps_fg_off='%f%b'
+typeset -g ps_sep=':'
+
+typeset -g psline_first="${ps_fg_on}╭─(${ps_fg_off}%10F%n%f${ps_fg_on}@${ps_fg_off}%14F%m%f${ps_fg_on}${ps_sep}${ps_fg_off}%13F%${psvar_indices[__shrink_path]}v%f${ps_fg_on})${ps_fg_off}"
+
+typeset -g  psline_last="${ps_fg_on}╰${ps_fg_off}%(?.${ps_fg_on}%#${ps_fg_off}.${ps_fg_err}%%${ps_fg_off} ${ps_fg_on}%?${ps_fg_off} ${ps_fg_err}%#${ps_fg_off}) "
+
+typeset -g -a pslines_dynamic=(
+  "%${psvar_indices[__virtualenv_prompt_info]}v"
+  "%${psvar_indices[__git_prompt_info]}v"
+)
+
+PROMPT=""
+RPROMPT=""
+
+function __ps_update() {
+  emulate -LR zsh
+  setopt promptsubst
+  typeset -g -a psvar
+  typeset -g -A psvar_indices
+  __psvar_update
+  set -- "${psline_first}" "${(%%)pslines_dynamic[@]}" "${psline_last}"
+  typeset -g PROMPT="${(@F)@:#}"
+}
+__ps_update
+
+add-zsh-hook precmd __ps_update
+
+ZSH_THEME_VIRTUALENV_PREFIX="${ps_fg_on}├─(${ps_fg_off}%10Fenv%f${ps_fg_on}${ps_sep}${ps_fg_off}%14F"
+ZSH_THEME_VIRTUALENV_SUFFIX="%f${ps_fg_on}${ps_sep}${ps_fg_off}%13F%${psvar_indices[VIRTUAL_ENV]}v%f${ps_fg_on}${ps_sep}${ps_fg_off}%11F%${psvar_indices[__virtualenv_version_info]}v%f${ps_fg_on})${ps_fg_off}"
+
 ZSH_THEME_GIT_PROMPT_CLEAN_ICON="%12F%f" 
 ZSH_THEME_GIT_PROMPT_DIRTY_ICON="%9F%f"
-ZSH_THEME_GIT_PROMPT_SUFFIX="${PS_FG})${PS_FG_OFF}"
-ZSH_THEME_GIT_PROMPT_DIRTY="%f${PS_FG}${PS_SEP}${PS_FG_OFF}${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}"
-ZSH_THEME_GIT_PROMPT_CLEAN="%f${PS_FG}${PS_SEP}${PS_FG_OFF}${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}"
-
-ZSH_THEME_VIRTUALENV_PREFIX="
-${PS_FG}├─(${PS_FG_OFF}%10Fenv%f${PS_FG}${PS_SEP}${PS_FG_OFF}%14F"
-ZSH_THEME_VIRTUALENV_SUFFIX="%f${PS_FG}${PS_SEP}${PS_FG_OFF}%13F"'$(__shrink_path "${VIRTUAL_ENV:h}")'"%f${PS_FG}${PS_SEP}${PS_FG_OFF}%11F"'$(__virtualenv_version_info)'"%f${PS_FG})${PS_FG_OFF}"
+ZSH_THEME_GIT_PROMPT_DIRTY="%f${ps_fg_on}${ps_sep}${ps_fg_off}${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}"
+ZSH_THEME_GIT_PROMPT_CLEAN="%f${ps_fg_on}${ps_sep}${ps_fg_off}${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}"
+ZSH_THEME_GIT_PROMPT_PREFIX="${ps_fg_on}├─(${ps_fg_off}%10Fgit%f${ps_fg_on}${ps_sep}${ps_fg_off}%14F"
+ZSH_THEME_GIT_PROMPT_SUFFIX="${ps_fg_on})${ps_fg_off}"
 
 # ╒╤═╤╤═╛ -
 # ╞╧╡╞╧╛ --

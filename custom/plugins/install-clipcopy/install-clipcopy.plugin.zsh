@@ -6,20 +6,21 @@
 # usage: _create_script_body_from_function FUNCTION_NAME [INTERPRETER [INTERPRETER_ARG]]
 function _create_script_body_from_function() {
   emulate -LR zsh
-  if (($# == 0)); then
+  if test "$#" -lt 1; then
     return 2
   fi
   local function_name="$1"
   local function_call=("${function_name}" '"$@"')
+  local function_body="$(functions -- "${function_name}" 2> /dev/null)"
+  local interpreter_directive=(/usr/bin/env zsh)
   shift
-  local interpreter_directive=()
-  if (($# == 0)); then
-    interpreter_directive=(/usr/bin/env zsh)
-  else
-    interpreter_directive=("${@:2:2}")
+  if test "$#" -gt 2; then
+    return 2
   fi
-  local function_body
-  if ! function_body="$(functions -- "${function_name}" 2> /dev/null)"; then
+  if test "$#" -gt  0; then
+    interpreter_directive=("$@")
+  fi
+  if test -z "${function_body}"; then
     return 1
   fi
   cat << EOF
@@ -29,7 +30,6 @@ function _create_script_body_from_function() {
 ${function_body}
 
 ${function_call[@]}
-exit
 EOF
 }
 

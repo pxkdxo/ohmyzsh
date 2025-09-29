@@ -208,11 +208,18 @@ fi
 
 # date.iso - print the date and time up to the given precision (format: ISO 8601)
 # usage: date.iso [date|hours|minutes|seconds|ns]
-date.iso () {
+date-iso () {
 	date "-I${1-}"
 }
 
 # thefuck
-if command -v fuck > /dev/null; then
-  eval "$(thefuck --alias)" && alias F='fuck'
+if command -v thefuck > /dev/null; then
+  eval "$(thefuck --alias)" && alias fu='fuck'
 fi
+
+# lua - don't quit on SIGINT
+lua () {
+  emulate -L zsh
+  trap '' SIGINT
+	command lua "$@"
+}
