@@ -26,7 +26,7 @@ fi
 function __git_prompt_info() {
   local retval="$?"
   emulate -LR zsh
-  setopt promptpercent promptsubst
+  setopt promptsubst
   2> /dev/null git_prompt_info
   return "${retval}"
 }
@@ -34,7 +34,7 @@ function __git_prompt_info() {
 function __virtualenv_prompt_info() {
   local retval="$?"
   emulate -LR zsh
-  setopt promptpercent promptsubst
+  setopt promptsubst
   2> /dev/null virtualenv_prompt_info
   return "${retval}"
 }
@@ -48,7 +48,7 @@ function __virtualenv_version_info() {
   local -A pyenvcfg=("${(@SM)${(@fs.=.)pyenvcfg_lines}[@]##[[:graph:]]*[[:graph:]]}")
   printf '%s\n' "${pyenvcfg[version]:-UNKNOWN}"
   return "${retval}"
-}
+} 2> /dev/null
 
 function __virtualenv_prompt_fix() {
   emulate -LR zsh
@@ -61,68 +61,95 @@ function __virtualenv_prompt_fix() {
 autoload -U add-zsh-hook
 add-zsh-hook precmd __virtualenv_prompt_fix
 
-typeset -g -A psvar_indices=(
-  ['__shrink_path']=$(( ${#psvar[@]} + 1 ))
-  ['__git_prompt_info']=$(( ${#psvar[@]} + 2 ))
-  ['__virtualenv_prompt_info']=$(( ${#psvar[@]} + 3 ))
-  ['__virtualenv_version_info']=$(( ${#psvar[@]} + 4 ))
-  ['"${VIRTUAL_ENV:h}"']=$(( ${#psvar[@]} + 5 ))
-)
+typeset -g -A psvar_indices=()
+typeset -g -A psvar_expressions=()
+
+function __psvar_indices_update() {
+  emulate -LR zsh
+  local key
+  local -i index=1
+  typeset -g -A psvar_expressions
+  typeset -g -A psvar_indices
+  for key in "${(k)psvar_expressions[@]}"; do
+    psvar_indices[${key}]=$(( index++ ))
+  done
+}
 
 function __psvar_update() {
   emulate -LR zsh
-  local ind
   local key
   typeset -g -a psvar
+  typeset -g -A psvar_expressions
   typeset -g -A psvar_indices
-  for key ind in "${(kv)psvar_indices[@]}"; do
-    if command -v "${key}" > /dev/null; then
-      psvar[ind]="$("${key}")"
+  __psvar_indices_update
+  for key in "${(k)psvar_expressions[@]}"; do
+    set -- "${(z)psvar_expressions[${key}]}"
+    if command -v "$1" > /dev/null; then
+      psvar[$(( ${psvar_indices[${key}]} ))]="$(eval "$@")"
+    elif [[ "$#" -eq 1 && -v "$1" ]]; then
+      psvar[$(( ${psvar_indices[${key}]} ))]="${(P)1}"
     else
-      eval "psvar[ind]=${key}"
+      psvar[$(( ${psvar_indices[${key}]} ))]="${(e)${(j: :)@}}"
     fi
-  done 2> /dev/null
+  done
 }
 
-typeset -g ps_fg_on='%B%(?.%8F.%1F)'
-typeset -g ps_fg_err='%B%(?.%8F.%1F)'
-typeset -g ps_fg_off='%f%b'
+psvar_expressions[cwd]='__shrink_path'
+psvar_expressions[git]='__git_prompt_info'
+psvar_expressions[pyenv]='__virtualenv_prompt_info'
+psvar_expressions[pyenv_vers]='__virtualenv_version_info'
+psvar_expressions[pyenv_path]='${VIRTUAL_ENV:h:t}'
+psvar_expressions[dirstack]='[${(j.:.)${(D)dirstack[@]}:t}]'
+
+typeset -g ps_style_words="%U"
+typeset -g ps_style_punct="%B%(?.%8F.%1F)"
+typeset -g ps_style_reset="%f%b%u"
+
 typeset -g ps_sep=':'
 
-typeset -g psline_first="${ps_fg_on}╭─(${ps_fg_off}%10F%n%f${ps_fg_on}@${ps_fg_off}%14F%m%f${ps_fg_on}${ps_sep}${ps_fg_off}%13F%${psvar_indices[__shrink_path]}v%f${ps_fg_on})${ps_fg_off}"
-
-typeset -g  psline_last="${ps_fg_on}╰${ps_fg_off}%(?.${ps_fg_on}%#${ps_fg_off}.${ps_fg_err}%%${ps_fg_off} ${ps_fg_on}%?${ps_fg_off} ${ps_fg_err}%#${ps_fg_off}) "
-
-typeset -g -a pslines_dynamic=(
-  "%${psvar_indices[__virtualenv_prompt_info]}v"
-  "%${psvar_indices[__git_prompt_info]}v"
+typeset -g psline_head=(
+  '${ps_style_reset}${ps_style_punct}╭─(${ps_style_reset}${ps_style_words}%10F%n${ps_style_reset}${ps_style_punct}@${ps_style_reset}${ps_style_words}%11F%m${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%13F%${psvar_indices[cwd]}v${ps_style_reset}${ps_style_punct})${ps_style_reset}'
 )
 
-PROMPT=""
-RPROMPT=""
+typeset -g psline_tail=(
+  '${ps_style_reset}${ps_style_punct}├─(${ps_style_reset}${ps_style_words}%10F%D{%a %I:%M %p}${ps_style_reset}${ps_style_punct})${ps_style_reset}'
+
+  '${ps_style_reset}${ps_style_punct}╰${ps_style_reset}%(?.${ps_style_punct}%#${ps_style_reset}.${ps_style_punct}%%${ps_style_reset} ${ps_style_punct}%?${ps_style_reset} ${ps_style_punct}%#${ps_style_reset}) '
+)
+
+typeset -g pslines_dynamic=(
+  '%${psvar_indices[pyenv]}v'
+  '%${psvar_indices[git]}v'
+)
 
 function __ps_update() {
   emulate -LR zsh
   setopt promptsubst
   typeset -g -a psvar
+  typeset -g -A psvar_expressions
   typeset -g -A psvar_indices
   __psvar_update
-  set -- "${psline_first}" "${(%%)pslines_dynamic[@]}" "${psline_last}"
+  set -- "${(e)psline_head[@]}" "${(%%)${(e)pslines_dynamic[@]}[@]}" "${(e)psline_tail[@]}"
   typeset -g PROMPT="${(@F)@:#}"
 }
-__ps_update
-
 add-zsh-hook precmd __ps_update
 
-ZSH_THEME_VIRTUALENV_PREFIX="${ps_fg_on}├─(${ps_fg_off}%10Fenv%f${ps_fg_on}${ps_sep}${ps_fg_off}%14F"
-ZSH_THEME_VIRTUALENV_SUFFIX="%f${ps_fg_on}${ps_sep}${ps_fg_off}%13F%${psvar_indices[VIRTUAL_ENV]}v%f${ps_fg_on}${ps_sep}${ps_fg_off}%11F%${psvar_indices[__virtualenv_version_info]}v%f${ps_fg_on})${ps_fg_off}"
 
-ZSH_THEME_GIT_PROMPT_CLEAN_ICON="%12F%f" 
-ZSH_THEME_GIT_PROMPT_DIRTY_ICON="%9F%f"
-ZSH_THEME_GIT_PROMPT_DIRTY="%f${ps_fg_on}${ps_sep}${ps_fg_off}${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}"
-ZSH_THEME_GIT_PROMPT_CLEAN="%f${ps_fg_on}${ps_sep}${ps_fg_off}${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}"
-ZSH_THEME_GIT_PROMPT_PREFIX="${ps_fg_on}├─(${ps_fg_off}%10Fgit%f${ps_fg_on}${ps_sep}${ps_fg_off}%14F"
-ZSH_THEME_GIT_PROMPT_SUFFIX="${ps_fg_on})${ps_fg_off}"
+ZSH_THEME_GIT_PROMPT_DIRTY_ICON='✗'
+ZSH_THEME_GIT_PROMPT_CLEAN_ICON='✔' 
+
+ZSH_THEME_GIT_PROMPT_DIRTY='${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%9F${ZSH_THEME_GIT_PROMPT_DIRTY_ICON}%f${ps_style_reset}'
+ZSH_THEME_GIT_PROMPT_CLEAN='${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%7F${ZSH_THEME_GIT_PROMPT_CLEAN_ICON}%f${ps_style_reset}'
+
+ZSH_THEME_GIT_PROMPT_PREFIX='${ps_style_reset}${ps_style_punct}├─(${ps_style_reset}${ps_style_words}%10Fgit%f${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%11F'
+ZSH_THEME_GIT_PROMPT_SUFFIX='${ps_style_reset}${ps_style_punct})${ps_style_reset}'
+
+ZSH_THEME_VIRTUALENV_PREFIX='${ps_style_reset}${ps_style_punct}├─(${ps_style_reset}${ps_style_words}%10Fenv%f${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%11F'
+ZSH_THEME_VIRTUALENV_SUFFIX='${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%13F%${psvar_indices[pyenv_path]}v%f${ps_style_reset}${ps_style_punct}${ps_sep}${ps_style_reset}${ps_style_words}%9F%${psvar_indices[pyenv_vers]}v%f${ps_style_reset}${ps_style_punct})${ps_style_reset}'
+
+RPROMPT=""
+
+__ps_update
 
 # ╒╤═╤╤═╛ -
 # ╞╧╡╞╧╛ --

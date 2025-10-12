@@ -8,38 +8,21 @@ case $- in
     (*) return ;;
 esac
 
-function coproc_printx() {
-  emulate -LR zsh
-  unsetopt monitor
-  trap '' HUP INT QUIT
-  if command -v bat > /dev/null; then
-    coproc bat --paging=never --style=plain --decorations=always --color=always --language=zsh && disown %%
-  else
-    coproc cat && disown %%
-  fi
-}
+
+# print expanded before execution aliases
 function preexec_printx() {
-  emulate -LR zsh
-  typeset -g coproc_printx_pid
-  local pfx='*↝'
-  local cmd="$2"
-  if [[ "$2" == "$1" ]]; then
-    return 0
-  fi
-  if
-    print -p -- "$2" || {
-      coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "$2"
-    }
-  then
-    read -p -r 2 && print -f '\e[0;1;2;3;90m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "$2"
-  fi 2> /dev/null
+  emulate -L zsh
+  case "$1" in
+    "$2"*) ;;
+    *) printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" ;;
+  esac
 }
 preexec_functions+=(preexec_printx)
 
+
 # default command options
 alias cp='cp -iv'
-alias df='df -h'
-alias dfx='df --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs'
+alias df='df -h -T nodevfs,notmpfs'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
@@ -53,7 +36,6 @@ alias mv='mv -iv'
 alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
-alias df='df --exclude-type=tmpfs'
 
 
 # clear
@@ -189,10 +171,12 @@ alias wanip='wanip4'
 
 # tree customization
 if command -v tree > /dev/null; then
+  typeset -xT TREE tree ' '
+  tree=(-F -l -v --dirsfirst --filelimit 10000 -C -L 6)
   function tree() {
     emulate -LR zsh
     local -T TREE="${TREE}" tree ' '
-    local options=(-CFlv --dirsfirst --filelimit 10000 --gitignore)
+    local options=(-F -l -v --dirsfirst --filelimit 10000 --gitignore)
     local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N))
     local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}") 2> /dev/null
     if test "${#ignore_list[@]}" -gt 0; then
@@ -200,9 +184,6 @@ if command -v tree > /dev/null; then
     fi
     command tree "${tree[@]}" "${(@)options:|tree}" "$@"
   }
-  typeset -xT TREE tree ' '
-  tree=(-CFlv --dirsfirst --filelimit 10000 -L 10)
-  alias tree="'tree'"
 fi
 
 
