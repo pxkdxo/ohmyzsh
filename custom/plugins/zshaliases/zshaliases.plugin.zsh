@@ -215,11 +215,12 @@ function dutree () {
   tree="${@[-1]}"
   du_options+=("${@:1:-1}")
   du "${du_options[@]}" "${tree}" | sort -h -b --key "1,1"
+}
 
 
 # lua don't quit on SIGINT
 lua () {
   emulate -L zsh
   trap '' SIGINT
-	command lua "$@"
+  command lua "$@"
 }
