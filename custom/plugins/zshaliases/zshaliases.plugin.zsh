@@ -8,38 +8,21 @@ case $- in
     (*) return ;;
 esac
 
-function coproc_printx() {
-  emulate -LR zsh
-  unsetopt monitor
-  trap '' HUP INT QUIT
-  if command -v bat > /dev/null; then
-    coproc bat --paging=never --style=plain --decorations=always --color=always --theme=TwoDark --language=zsh && disown %%
-  else
-    coproc cat && disown %%
-  fi
-}
+
+# show alias expansion before execution
 function preexec_printx() {
-  emulate -LR zsh
-  typeset -g coproc_printx_pid
-  local pfx='*↝'
-  local cmd="$2"
-  if [[ "$2" == "$1" ]]; then
-    return 0
-  fi
-  if
-    print -p -- "$2" || {
-      coproc_printx < /dev/null > /dev/null 2>&1 && print -p -- "$2"
-    }
-  then
-    read -p -r 2 && print -f '\e[0;1;2;3;90m%s\e[0;3m \e[0;1m%s\n' -- "${pfx}" "$2"
-  fi 2> /dev/null
+  emulate -L zsh
+  case "$1" in
+    "$2"*) ;;
+    *) printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" ;;
+  esac
 }
 preexec_functions+=(preexec_printx)
+
 
 # default command options
 alias cp='cp -iv'
 alias df='df -h'
-alias dfx='df --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
@@ -53,7 +36,7 @@ alias mv='mv -iv'
 alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
-alias df='df --exclude-type=tmpfs'
+alias lsblk='lsblk --fs --tree'
 
 
 # clear
@@ -63,8 +46,8 @@ alias c='clear'
 # dirs
 alias po='popd'
 alias pu='pushd'
-alias -- -='popd'
-alias -- +='pushd'
+alias -- -='cd -'
+alias -- +='pushd +1'
 
 
 # jobs
@@ -100,6 +83,7 @@ alias p='ps'
 alias px='p x'
 alias pa='ps ax'
 
+
 # pstree
 if command -v pstree > /dev/null; then
   alias pstree='pstree -p'
@@ -107,10 +91,6 @@ else
   alias pstree='ps x --forest'
 fi
 alias pt='pstree'
-
-
-# lsblk w/ default opts - show filesystems and permissions in a tree
-alias lsblk='lsblk --fs --tree'
 
 
 # python
@@ -198,10 +178,12 @@ alias wanip='wanip4'
 
 # tree customization
 if command -v tree > /dev/null; then
+  typeset -xT TREE tree ' '
+  tree=(-F -l -v --dirsfirst --filelimit 10000 -C -L 6)
   function tree() {
     emulate -LR zsh
     local -T TREE="${TREE}" tree ' '
-    local options=(-CFlv --dirsfirst --filelimit 10000 --gitignore)
+    local options=(-F -l -v --dirsfirst --filelimit 10000 --gitignore)
     local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N))
     local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}") 2> /dev/null
     if test "${#ignore_list[@]}" -gt 0; then
@@ -209,9 +191,6 @@ if command -v tree > /dev/null; then
     fi
     command tree "${tree[@]}" "${(@)options:|tree}" "$@"
   }
-  typeset -xT TREE tree ' '
-  tree=(-CFlv --dirsfirst --filelimit 10000 -L 10)
-  alias tree="'tree'"
 fi
 
 
@@ -220,6 +199,7 @@ fi
 function date-iso () {
   date --iso-8601 "${1-seconds}" "${@:2}"
 }
+
 
 # dutree - show a summary of disk usage for a directory tree - from root to leaves
 # usage: dutree [du-options] directory
@@ -235,4 +215,11 @@ function dutree () {
   tree="${@[-1]}"
   du_options+=("${@:1:-1}")
   du "${du_options[@]}" "${tree}" | sort -h -b --key "1,1"
+
+
+# lua don't quit on SIGINT
+lua () {
+  emulate -L zsh
+  trap '' SIGINT
+	command lua "$@"
 }

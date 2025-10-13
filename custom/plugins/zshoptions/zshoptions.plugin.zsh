@@ -19,7 +19,7 @@ setopt nobashrematch
 setopt nobeep
 setopt braceccl
 setopt nobsdecho
-setopt nocaseglob
+setopt caseglob
 setopt casepaths
 setopt cbases
 setopt cdablevars
@@ -65,7 +65,6 @@ setopt noignoreclosebraces
 setopt noignoreeof
 setopt noincappendhistory
 setopt noincappendhistorytime
-setopt interactive
 setopt interactivecomments
 setopt noksharrays
 setopt nokshautoload
@@ -99,10 +98,8 @@ setopt noposixstrings
 setopt noposixtraps
 setopt noprinteightbit
 setopt noprintexitvalue
-# setopt promptbang
 setopt promptsubst
 setopt pushdignoredups
-setopt pushdminus
 setopt nopushdsilent
 setopt pushdtohome
 setopt rcexpandparam

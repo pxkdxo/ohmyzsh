@@ -16,10 +16,19 @@ function _fancy_ctrl_q() {
 zle -N _fancy_ctrl_q
 bindkey "^Q" _fancy_ctrl_q
 
+# zsh-autosuggestions: convenient accept and toggle if plugin is loaded
+if (( $+functions[_zsh_autosuggest_bind_widgets] )) || [[ -n ${ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE:+x} ]]
+then
+  # Accept suggestion with Ctrl-Right (xterm/iterm CSI 1;5C) and with End
+  bindkey '^[[1;5C' autosuggest-accept 2>/dev/null || true
+  bindkey '^[OC' autosuggest-accept 2>/dev/null || true
+  bindkey '^[OF' autosuggest-accept 2>/dev/null || true
+  bindkey '^E' autosuggest-accept 2>/dev/null || true
+fi
+
 bindkey " " magic-space
 bindkey "^B" backward-kill-word
 bindkey "^F" kill-word
-bindkey "^I" expand-or-complete
 bindkey "^M" accept-line
 bindkey "^Xr" history-incremental-pattern-search-backward
 bindkey "^Xs" history-incremental-pattern-search-forward
@@ -31,7 +40,7 @@ bindkey "^[Y" yank-pop
 bindkey "^[[" get-line
 bindkey "^[[127;2u" backward-delete-char
 bindkey "^[[127;5u" backward-kill-line
-bindkey "^[[13;2u" accept-and-hold
+# Avoid duplicate binding for the same key sequence
 bindkey "^[[13;2u" accept-line
 bindkey "^[[1;2A" up-history
 bindkey "^[[1;2B" down-history
@@ -73,3 +82,12 @@ if [[ -v terminfo[kend] && -n "${terminfo[kend]}" ]]
 then
   bindkey "${terminfo[kend]}" end-of-line
 fi
+
+# Menu selection navigation: enable hjkl and common abort keys when in completion menu
+bindkey -M menuselect 'h' backward-char
+bindkey -M menuselect 'j' down-line-or-history
+bindkey -M menuselect 'k' up-line-or-history
+bindkey -M menuselect 'l' forward-char
+bindkey -M menuselect '^G' send-break
+bindkey -M menuselect '^[' send-break
+bindkey -M menuselect '^[^[' send-break
