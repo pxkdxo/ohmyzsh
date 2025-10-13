@@ -13,7 +13,7 @@ function coproc_printx() {
   unsetopt monitor
   trap '' HUP INT QUIT
   if command -v bat > /dev/null; then
-    coproc bat --paging=never --style=plain --decorations=always --color=always --language=zsh && disown %%
+    coproc bat --paging=never --style=plain --decorations=always --color=always --theme=TwoDark --language=zsh && disown %%
   else
     coproc cat && disown %%
   fi
@@ -93,15 +93,24 @@ alias m='man'
 
 
 # ps
-typeset -gT PS_FORMAT="user,pid,ppid,pgid,sess,jobc,tt,stat,start,time,command=CMD" ps_format
-alias p='ps -o "${PS_FORMAT}"'
-alias pa='ps -a -o "${PS_FORMAT}"'
-alias px='ps -x -o "${PS_FORMAT}"'
-alias pe='ps -e -o "${PS_FORMAT}"'
+typeset -g -x PS_FORMAT="user=UID,pid,ppid,c,stime,tname,time,cmd"
+typeset -g -x PS_PERSONALITY="linux"
+
+alias p='ps'
+alias px='p x'
+alias pa='ps ax'
+
+# pstree
+if command -v pstree > /dev/null; then
+  alias pstree='pstree -p'
+else
+  alias pstree='ps x --forest'
+fi
+alias pt='pstree'
 
 
 # lsblk w/ default opts - show filesystems and permissions in a tree
-alias lsblk='lsblk --fs --perms --tree'
+alias lsblk='lsblk --fs --tree'
 
 
 # python
@@ -206,13 +215,24 @@ if command -v tree > /dev/null; then
 fi
 
 
-# date.iso - print the date and time up to the given precision (format: ISO 8601)
-# usage: date.iso [date|hours|minutes|seconds|ns]
-date.iso () {
-	date "-I${1-}"
+# date-iso - print the date and time in ISO 8601 format up to the given precision (default: seconds)
+# usage: date-iso [date|hours|minutes|seconds|ns]
+function date-iso () {
+  date --iso-8601 "${1-seconds}" "${@:2}"
 }
 
-# thefuck
-if command -v fuck > /dev/null; then
-  eval "$(thefuck --alias)" && alias F='fuck'
-fi
+# dutree - show a summary of disk usage for a directory tree - from root to leaves
+# usage: dutree [du-options] directory
+function dutree () {
+  emulate -LR zsh
+  local tree
+  local -a -U du_options=(--dereference-args --human-readable --total)
+  if test "$#" -lt 1
+  then
+    >&2 printf 'usage: dutree [du-options] directory\n' 
+    return 2
+  fi
+  tree="${@[-1]}"
+  du_options+=("${@:1:-1}")
+  du "${du_options[@]}" "${tree}" | sort -h -b --key "1,1"
+}

@@ -31,7 +31,7 @@ setopt completealiases
 setopt completeinword
 setopt nocontinueonerror
 setopt correct
-setopt correctall
+setopt nocorrectall
 setopt nocshjunkiehistory
 setopt nocshjunkieloops
 setopt nocshjunkiequotes
@@ -102,7 +102,7 @@ setopt noprintexitvalue
 # setopt promptbang
 setopt promptsubst
 setopt pushdignoredups
-# setopt pushdminus
+setopt pushdminus
 setopt nopushdsilent
 setopt pushdtohome
 setopt rcexpandparam
