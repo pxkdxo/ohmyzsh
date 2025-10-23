@@ -19,6 +19,8 @@ function preexec_printx() {
 }
 preexec_functions+=(preexec_printx)
 
+alias sudo='sudo '
+alias sudo-H='sudo -H '
 
 # default command options
 alias cp='cp -iv'
@@ -171,25 +173,28 @@ fi
 
 
 # query DNS servers for my WAN IP
-alias wanip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
-alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
-alias wanip='wanip4'
+alias ip4-public='dig @resolver1.opendns.com -4 myip.opendns.com +short'
+alias ip6-public='dig @resolver1.opendns.com -4 myip.opendns.com +short'
+alias my-ip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
+alias my-ip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
+
 
 
 # tree customization
 if command -v tree > /dev/null; then
   typeset -xT TREE tree ' '
-  tree=(-F -l -v --dirsfirst --filelimit 10000 -C -L 6)
-  function tree() {
+  tree=(-F -l -v --dirsfirst --filelimit 10000 -C -L 5)
+  function tree {
     emulate -LR zsh
-    local -T TREE="${TREE}" tree ' '
-    local options=(-F -l -v --dirsfirst --filelimit 10000 --gitignore)
-    local ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N))
-    local ignore_list=("${(f)$(< "${ignore_from[@]-/dev/null}")}") 2> /dev/null
+    local -a opts=( "$@" )
+    local -T TREE="${TREE}" tree " "
+    local -a base=( -F -l -v --dirsfirst --filelimit 10000 --gitignore )
+    local ignore_from=( "${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) )
+    local ignore_list=( "${(f)$(< "${ignore_from[@]-/dev/null}")}" ) 2> /dev/null
     if test "${#ignore_list[@]}" -gt 0; then
-      options+=(-I "(${(j:|:)ignore_list[@]%%(\/##\*#)#})")
+      base+=( -I "(${(j:|:)ignore_list[@]%%(\/##\*#)#})" "${opts[@]}" )
     fi
-    command tree "${tree[@]}" "${(@)options:|tree}" "$@"
+    command tree "${base[@]}" "${tree[@]}" "${opts[@]}"
   }
 fi
 
@@ -197,7 +202,7 @@ fi
 # date-iso - print the date and time in ISO 8601 format up to the given precision (default: seconds)
 # usage: date-iso [date|hours|minutes|seconds|ns]
 function date-iso () {
-  date --iso-8601 "${1-seconds}" "${@:2}"
+  date --iso-8601="${1-seconds}" "${@:2}"
 }
 
 
@@ -224,3 +229,8 @@ lua () {
   trap '' SIGINT
   command lua "$@"
 }
+
+
+# Send commands to background
+alias -g @+='< /dev/null > /dev/null 2>&1 &'
+alias -g @++='< /dev/null > /dev/null 2>&1 &!'

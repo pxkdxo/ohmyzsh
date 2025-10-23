@@ -7,7 +7,6 @@ function _fancy_ctrl_q() {
     zle accept-line -w
   else
     zle push-input -w
-    zle clear-screen -w
     BUFFER="jobs -l"
     zle accept-line -w
     zle pop-input -w
@@ -27,17 +26,14 @@ then
 fi
 
 bindkey " " magic-space
-bindkey "^B" backward-kill-word
-bindkey "^F" kill-word
-bindkey "^M" accept-line
 bindkey "^Xr" history-incremental-pattern-search-backward
 bindkey "^Xs" history-incremental-pattern-search-forward
-bindkey "^Y" yank
-bindkey "^[*" list-expand
 bindkey "^[OA" up-line-or-history
 bindkey "^[OB" down-line-or-history
-bindkey "^[Y" yank-pop
+bindkey "^[q" push-input
+bindkey "^[Q" push-input
 bindkey "^[[" get-line
+bindkey "^[]" push-input
 bindkey "^[[127;2u" backward-delete-char
 bindkey "^[[127;5u" backward-kill-line
 # Avoid duplicate binding for the same key sequence
@@ -67,7 +63,6 @@ bindkey "^[[B" down-line-or-history
 bindkey "^[[F" end-of-line
 bindkey "^[[H" beginning-of-line
 bindkey "^[[Z" reverse-menu-complete
-bindkey "^[]" push-line
 bindkey "^[^[[A" up-history
 bindkey "^[^[[B" down-history
 bindkey "^[^[[C" forward-word
@@ -90,4 +85,4 @@ bindkey -M menuselect 'k' up-line-or-history
 bindkey -M menuselect 'l' forward-char
 bindkey -M menuselect '^G' send-break
 bindkey -M menuselect '^[' send-break
-bindkey -M menuselect '^[^[' send-break
+bindkey -M menuselect '^\' send-break

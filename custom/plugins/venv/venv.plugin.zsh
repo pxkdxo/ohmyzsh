@@ -6,105 +6,108 @@
 0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
 
+
 # Find the nearest ancestor of a directory with a virtual env as a child.
 # If called with no arguments, operate on the current working directory.
 # Upon success, the result is appended to the ``reply'' array.
-function __find_nearest_venv_root() {
+function __find_nearest_venv() {
   emulate -LR zsh
   setopt extendedglob globassign noglobsubst
-  local RESULT
-  typeset -A -g result
+  typeset -g REPLY
   if ! [[ -d ${1-.} ]]; then
     return 1
   fi
-  RESULT=${1-.}/(../)#(|.)(|v|virtual)env/bin/activate(.NY1:A)
-  if ! [[ -n "${RESULT}" ]]; then
+  REPLY=${1-.}/(../)#(|.)(|v|virtual)env/bin/activate(.NY1:A:h:h)
+  if ! [[ -n "${REPLY}" ]]; then
     return 1
   fi
-  result[${1-.}]="${RESULT}"
 }
 
 
 # check if we've encountered a new nearest venv
 function __venv_hook() {
   emulate -L zsh
-  setopt extendedglob noglobsubst noksharrays unset
   set -o verbose
-  local -A result=()
-  if __find_nearest_venv_root; then
-    if [[ -v VIRTUAL_ENV ]] && [[ "${VIRTUAL_ENV}" == "${result[.]}" ]]; then
-      return 0
-    fi
-    if [[ "${PWD}" != "${OLDPWD}" ]] && __find_nearest_venv_root "${OLDPWD}"; then
-      if [[ "${result[${OLDPWD}]}" == "${result[.]}" ]]; then
-        return 0
-      fi
-    fi
-    if typeset -f activate > /dev/null; then
-      unset -f activate
-    fi
-  else
+  local venv=""
+  local REPLY=""
+
+  if ! __find_nearest_venv; then
     if typeset -f activate > /dev/null; then
       unset -f activate
     fi
     return 0
   fi
-  print 'Found virtual environment in' "${(q)result[.]:h:h}"
-  __venv_found "${result[.]}"
-}
-
-
-# notify user and prompt for activation
-function __venv_found() {
-  emulate -L zsh
-  setopt extendedglob noglobsubst noksharrays unset
-  set -o verbose
-  local REPLY
-  trap '__venv_return '"${(q)1}"' "$?"' EXIT
-  if [[ -v VIRTUAL_ENV ]]; then
-    return 3
+  venv="${REPLY}"
+  if [[ "${venv}" == "${VIRTUAL_ENV}"  ]]; then
+    return 0
   fi
-  while print -n 'Activate? [Y/n] ' && read -k 1 -r REPLY; do
-    case "${(U)REPLY}" in
-      (Y) return 0 ;;
-      (N) return 1 ;;
-    esac
-    echoti el1
-    echoti hpa 0
-  done
-  return 2
-}
-
-
-# return to the interactive user
-function __venv_return() {
-  emulate zsh
-  set -o verbose
-  eval '
-  function activate() {
+  if [[ "${PWD}" != "${OLDPWD}" ]] && __find_nearest_venv "${OLDPWD}" && [[ "${REPLY}" == "${venv}" ]]; then
+    return 0
+  fi
+  if typeset -f activate > /dev/null; then
     unset -f activate
-    emulate -LR zsh
-    print source -- '"${(q)1}"'
-    source -- '"${(q)1}"'
+  fi
+  print 'Found a python env at' "${(q)venv}"
+
+  emulate -R zsh -c 'function activate() {
+    print "source -- "'"${(q)venv}"'"/bin/activate"
+    source -- '"${(q)venv}"'/bin/activate
   }'
-  if test "$2" -lt 3; then
-    print
-    PROMPT_EOL_MARK='\n'
+  if ! [[ -v VIRTUAL_ENV ]]; then
+    while print -n 'Activate? [Y/n] ' && read -k 1 -r REPLY; do
+      case "${(U)REPLY}" in
+        (Y)
+          echo
+          activate
+          return ;;
+        (N)
+          break ;;
+      esac
+      echoti el1
+      echoti hpa 0
+    done
+    echo
   fi
-  if test "$2" -gt 0; then
-    print "Run 'activate' to load the virtual environment"
-  else
-    activate
-  fi
+  print "Run 'activate' to load the virtual environment"
 }
 
-
+# Add venv hook
 autoload -U add-zsh-hook
 add-zsh-hook chpwd __venv_hook
 
 
-venv () {
+# create a new virtual environment
+function venv() {
 	emulate -L zsh
-	set -x
-	python3 -m venv "${1-./.venv/}"
+  if test "$#" -gt 1; then
+    print 'venv: error: too many arguments' >&2
+    print 'usage: venv [PATH]' >&2
+    return 2
+  fi
+  local REPLY
+  local venv="${1-.venv}"
+
+  print "python3 -m venv -- ${(q)venv}"
+  python3 -m venv -- "${venv}"
+
+  print "Created a python environment at ${(q)venv}"
+  emulate -R zsh -c 'function activate() {
+    print "source -- "'"${(q)venv}"'"/bin/activate"
+    source -- '"${(q)venv}"'/bin/activate
+  }'
+  while print -n 'Activate? [Y/n] ' && read -k 1 -r REPLY; do
+    case "${(U)REPLY}" in
+      (Y)
+        echo
+        activate
+        return ;;
+      (N)
+        echo
+        print "Run 'activate' to load the virtual environment"
+        return ;;
+    esac
+    echoti el1
+    echoti hpa 0
+  done
+  echo
 }
