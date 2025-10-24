@@ -1,6 +1,5 @@
-# zshaliases.plugin.zsh: Define aliases for an interactive shell
-#
-# vim : set et ft=zsh sts=2 sw=2 tw=0 :
+# zshaliases.plugin.zsh: aliases for an interactive shell
+
 
 # If this is not an interactive shell, abort.
 case $- in
@@ -9,7 +8,7 @@ case $- in
 esac
 
 
-# show alias expansion before execution
+# show alias expansion before command execution
 function preexec_printx() {
   emulate -L zsh
   case "$1" in
@@ -19,8 +18,19 @@ function preexec_printx() {
 }
 preexec_functions+=(preexec_printx)
 
+
+# sudo aliases to expand command aliases that follow
 alias sudo='sudo '
-alias sudo-H='sudo -H '
+alias -- A='-A ' --askpass='--askpass '
+alias -- b='-b ' --background='--background '
+alias -- H='-H ' --set-home='--set-home'
+alias -- i='-i ' --login='--login '
+alias -- l='-l ' --list='--list '
+alias -- n='-n ' --non-interactive='--non-interactive '
+alias -- P='-P ' --preservce-group='--preserve-groups '
+alias -- s='-s ' --shell='--shell '
+alias -- S='-S ' --stdin='--stdin '
+
 
 # default command options
 alias cp='cp -iv'
@@ -221,16 +231,46 @@ function dutree () {
   du_options+=("${@:1:-1}")
   du "${du_options[@]}" "${tree}" | sort -h -b --key "1,1"
 }
+alias du-tree="dutree"
 
 
-# lua don't quit on SIGINT
-lua () {
-  emulate -L zsh
-  trap '' SIGINT
-  command lua "$@"
-}
+# Close file descriptors and spin up background processes with
+# end-of-line aliases
+alias -g '@+'='0< /dev/null 1> /dev/null 2>&1'
+alias -g '@%+'='@+ &'
+alias -g '@%%'='@+ &|'
 
 
-# Send commands to background
-alias -g @+='< /dev/null > /dev/null 2>&1 &'
-alias -g @++='< /dev/null > /dev/null 2>&1 &!'
+# Launch and forget you even started a command in the background.
+# Try to close all the file descriptors connected to a terminal.
+# Redirect stidin/stdout/stderr to pipes if you want to provide
+# input or capture output.
+emulate -R zsh -c 'function forkforget() (
+  local fdlist=( 0 1 2 ) 
+  local tydir=""
+  local ty
+  local fd
+  if test -d "/proc/$$/fd"; then
+    tydir="/proc/$$/fd"
+  elif ty="$(tty)"; then
+    tydir="${ty##*/}"
+  fi
+  if test -n "${tydir}"; then
+    for fd in "${tydir}"/*; do
+      fd="${fd##*/}"
+      case "${fd}" in
+        (*[!0-9]*) ;;
+        (*) fdlist+=( "${fd}" ) ;;
+      esac
+    done
+  fi
+  for fd in "${fdlist[@]}"; do
+    if test -t "${fd}"; then
+      exec {fd}>&-
+    fi
+  done
+  "$@" &!
+)'
+
+
+# vi:et:sts=2:sw=2:tw=0:ft=zsh
