@@ -26,8 +26,7 @@ function __find_nearest_venv() {
 
 # check if we've encountered a new nearest venv
 function __venv_hook() {
-  emulate -L zsh
-  set -o verbose
+  emulate -LR zsh
   local venv=""
   local REPLY=""
 
@@ -47,28 +46,37 @@ function __venv_hook() {
   if typeset -f activate > /dev/null; then
     unset -f activate
   fi
-  print 'Found a python env at' "${(q)venv}"
-
-  emulate -R zsh -c 'function activate() {
-    print "source -- "'"${(q)venv}"'"/bin/activate"
-    source -- '"${(q)venv}"'/bin/activate
-  }'
-  if ! [[ -v VIRTUAL_ENV ]]; then
-    while print -n 'Activate? [Y/n] ' && read -k 1 -r REPLY; do
-      case "${(U)REPLY}" in
-        (Y)
-          echo
-          activate
-          return ;;
-        (N)
-          break ;;
-      esac
-      echoti el1
-      echoti hpa 0
+  emulate -R zsh -c '
+  function __venv_precmd() {
+    function activate() {
+      print source -- '"${(q)venv}"'/bin/activate
+      source -- '"${(q)venv}"'/bin/activate
+    }
+    typeset -g -a precmd_functions
+    local value=__venv_precmd
+    local index="${precmd_functions[(ie)${value}]}"
+    while (( index <= ${#precmd_functions[@]} )); do
+      precmd_functions[${index},-1]=("${precmd_functions[@]:${index}}")
+      index="${precmd_functions[(ie)${value}]}"
     done
-    echo
-  fi
-  print "Run 'activate' to load the virtual environment"
+    print Found a python environment at '"${(q)venv}"'
+    if ! [[ -v VIRTUAL_ENV ]]; then
+      while print -n '\''Activate? [Y/n] '\'' && read -k 1 -r REPLY; do
+        case "${(U)REPLY}" in
+          (Y)
+            echo
+            activate
+            return ;;
+          (N)
+            break ;;
+        esac
+        echoti el1
+        echoti hpa 0
+      done
+      echo
+    fi
+    print Run '\''activate'\'' to load the environment
+  }' && typeset -g -a precmd_functions && precmd_functions+=( __venv_precmd )
 }
 
 # Add venv hook
@@ -103,7 +111,7 @@ function venv() {
         return ;;
       (N)
         echo
-        print "Run 'activate' to load the virtual environment"
+        print Run 'activate' to load the environment
         return ;;
     esac
     echoti el1

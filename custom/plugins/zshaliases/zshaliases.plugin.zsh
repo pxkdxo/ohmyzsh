@@ -9,37 +9,38 @@ esac
 
 
 # show alias expansion before command execution
-function preexec_printx() {
-  emulate -L zsh
-  case "$1" in
-    "$2"*) ;;
-    *) printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" ;;
-  esac
-}
-preexec_functions+=(preexec_printx)
+function __preexec_printex() {
+  emulate -LR zsh
+  case "$1" in "$2"*) return ;; esac
+  case "$2" in "$1"*) return ;; esac
+  printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" >&2
+} && autoload -Uz add-zsh-hook && add-zsh-hook preexec __preexec_printex
+
+
+# history shortcuts
+alias history-load='fc -RI'
 
 
 # sudo aliases to expand command aliases that follow
 alias sudo='sudo '
-alias -- A='-A ' --askpass='--askpass '
-alias -- b='-b ' --background='--background '
-alias -- H='-H ' --set-home='--set-home'
-alias -- i='-i ' --login='--login '
-alias -- l='-l ' --list='--list '
-alias -- n='-n ' --non-interactive='--non-interactive '
-alias -- P='-P ' --preservce-group='--preserve-groups '
-alias -- s='-s ' --shell='--shell '
-alias -- S='-S ' --stdin='--stdin '
+alias -- -A='-A ' --askpass='--askpass '
+alias -- -b='-b ' --background='--background '
+alias -- -H='-H ' --set-home='--set-home'
+alias -- -i='-i ' --login='--login '
+alias -- -l='-l ' --list='--list '
+alias -- -n='-n ' --non-interactive='--non-interactive '
+alias -- -P='-P ' --preservce-group='--preserve-groups '
+alias -- -s='-s ' --shell='--shell '
+alias -- -S='-S ' --stdin='--stdin '
 
 
-# default command options
+# default options
 alias cp='cp -iv'
 alias df='df -h'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
-alias gdb='gdb -q'
 alias grep='grep --color=auto'
 alias ip='ip -c'
 alias ls='ls -CFhv --color=auto'
@@ -52,14 +53,22 @@ alias lsblk='lsblk --fs --tree'
 
 
 # clear
-alias c='clear'
+alias cl='clear'
 
 
 # dirs
-alias po='popd'
-alias pu='pushd'
-alias -- -='cd -'
-alias -- +='pushd +1'
+alias c='cd'
+alias c-='cd -'
+alias d='popd'
+alias -- +='pushd'
+alias -- -='pushd -1'
+function __alias_pushpopdirs() {
+  local -i n m="${DIRSTACKSIZE:-10}"
+  for (( n = 1; i < m; i = i + 1 )); do
+    alias -- "-${n}=cd -${n}"
+    alias -- "+${n}=cd +${n}"
+  done
+} && __alias_pushpopdirs
 
 
 # jobs
@@ -92,8 +101,9 @@ typeset -g -x PS_FORMAT="user=UID,pid,ppid,c,stime,tname,time,cmd"
 typeset -g -x PS_PERSONALITY="linux"
 
 alias p='ps'
+alias pp='p -p'
 alias px='p x'
-alias pa='ps ax'
+alias pa='p ax'
 
 
 # pstree
@@ -102,20 +112,17 @@ if command -v pstree > /dev/null; then
 else
   alias pstree='ps x --forest'
 fi
-alias pt='pstree'
 
 
 # python
-if command -v python3 > /dev/null
-then
-  alias python='python3'
-elif command -v python2 > /dev/null
-then
-  alias python='python2'
-fi
 alias py='python'
 alias py2='python2'
 alias py3='python3'
+alias ipy='ipython'
+if command -v python3 > /dev/null
+then
+  alias python='python3'
+fi
 
 
 # vim / neovim
@@ -137,41 +144,75 @@ elif command -v gtop > /dev/null; then
 fi
 
 
+# ripgre
+alias rg='rg --pretty --follow --no-ignore-global --no-ignore-parent'
+alias rg+='rg --hidden --no-ignore-vcs'
+alias rg!='rg --unrestricted'
+
+# fd
+alias fd='fd --follow --no-ignore-parent'
+alias fd+='fd --hidden --no-ignore-vcs'
+alias fd!='fd --unrestricted'
+
+
 # clipcopy
-alias clipfmt="clippaste | clipcopy"
+if [[ "${(L)OSTYPE:-$(uname -s 2> /dev/null)}" == darwin* ]] && command -v pbcopy > /dev/null; then
+  alias pbcopy='pbcopy'
+  alias pbpaste='pbpaste'
+elif [[ -n "${WAYLAND_DISPLAY:-}" ]] && command -v wl-copy > /dev/null; then
+  alias pbcopy='wl-copy -n'
+  alias pbpaste='wl-paste'
+elif command -v xclip > /dev/null; then
+  alias pbcopy='xclip -selection clipboard'
+  alias pbpaste='xclip -selection clipboard -o'
+elif command -v xsel > /dev/null; then
+  alias pbcopy='xsel --clipboard --input'
+  alias pbpaste='xsel --clipboard --output'
+elif command -v clipcopy > /dev/null; then
+  alias pbcopy='clipcopy'
+  alias pbpaste='clippaste'
+fi
+alias pbfmt="pbpaste | pbcopy"
 
 
 # tmux
 if command -v tmux > /dev/null; then
-  alias t='tmux'
-  alias ta='tmux attach-session -f ignore-size'
-  alias tn='tmux new-session'
-  alias tw='tmux new-window'
-  alias tl='tmux list-sessions' 
-  function tmux-new-session-window() {
+  alias tm='tmux'
+  alias tma='tmux attach-session -f ignore-size'
+  alias tms='tmux new-session'
+  alias tmw='tmux new-window'
+  alias tml='tmux list-sessions' 
+  function tmux-session-window() {
     if (($# != 1)); then
-      >&2 printf 'usage: tmux-attach-new-session-window SESSION_NAME\n' 
+      >&2 printf 'usage: tmux-session-window SESSION_NAME\n' 
       return 2
     fi
-    tmux new-session -d -t "$1" ";" "new-window" ";" "attach-session"
-  }
-  function fz-tmux-new-session-window() {
-    emulate -RL zsh
-    fzf=("${(z)$(__fzfcmd):-fzf}")
-    if tmux has-session; then
-      session_group="$(
-        tmux list-sessions -F "#S" | sort -u | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${fzf[@]}" --cycle
-      )"
-      if [[ "$#" -eq 0 && -n "${session_group}" ]]; then
-        tmux-new-session-window "${session_group}"
-      fi
-    fi
-    return "$#"
+    tmux new-session -d -t "$1" \; new-window \; attach-session
   }
   if command -v fzf > /dev/null; then
-    alias tnsw='fz-tmux-new-session-window'
+    function fzf-tmux-session-window() {
+      emulate -LR zsh
+      local session_group
+      local fzf=(
+        "${(z)$(__fzfcmd):-fzf}"
+        --cycle
+        --exit-0
+        --select-1
+        --height=65%
+        --min-height=5+
+        --info=right
+        --info-command='tmux list-panes -F '$'* #S:#I.#P\t#W:#T'' -a'
+        --preview-window='bottom,80%,border-sharp,nowrap,nocycle,noinfo'
+        --preview='tmux capture-pane -p -e -J -t {}'
+      )
+      tmux has-session &&
+        session_group="$(tmux list-sessions -F "#S" | sort -u | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${fzf[@]}")" &&
+        [[ -n "${session_group}" ]] &&
+        tmux new-session -d -t "${session_group}" \; new-window \; attach-session
+    }
+    alias tmsw='fzf-tmux-session-window'
   else
-    alias tnsw='tmux-new-session-window'
+    alias tmsw='tmux-session-window'
   fi
 fi
 
@@ -183,10 +224,10 @@ fi
 
 
 # query DNS servers for my WAN IP
-alias ip4-public='dig @resolver1.opendns.com -4 myip.opendns.com +short'
-alias ip6-public='dig @resolver1.opendns.com -4 myip.opendns.com +short'
-alias my-ip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
-alias my-ip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
+alias ipv4-public='dig @resolver1.opendns.com -4 myip.opendns.com +short'
+alias ipv6-public='dig @resolver1.opendns.com -6 myip.opendns.com +short'
+alias ip-public='ipv4-public'
+alias my-ip='ip-public'
 
 
 
@@ -216,29 +257,28 @@ function date-iso () {
 }
 
 
-# dutree - show a summary of disk usage for a directory tree - from root to leaves
-# usage: dutree [du-options] directory
-function dutree () {
+# du-tree - show a summary of disk usage for a directory tree - from root to leaves
+# usage: du-tree [du-options] directory
+function du-tree () {
   emulate -LR zsh
   local tree
   local -a -U du_options=(--dereference-args --human-readable --total)
   if test "$#" -lt 1
   then
-    >&2 printf 'usage: dutree [du-options] directory\n' 
+    >&2 printf 'usage: du-tree [du-options] directory\n' 
     return 2
   fi
   tree="${@[-1]}"
   du_options+=("${@:1:-1}")
   du "${du_options[@]}" "${tree}" | sort -h -b --key "1,1"
 }
-alias du-tree="dutree"
 
 
 # Close file descriptors and spin up background processes with
 # end-of-line aliases
-alias -g '@+'='0< /dev/null 1> /dev/null 2>&1'
-alias -g '@%+'='@+ &'
-alias -g '@%%'='@+ &|'
+alias -g '@='='< /dev/null > /dev/null 2>&1'
+alias -g '@%'='< /dev/null > /dev/null 2>&1 &'
+alias -g '@!'='< /dev/null > /dev/null 2>&1 &!'
 
 
 # Launch and forget you even started a command in the background.
@@ -258,10 +298,9 @@ emulate -R zsh -c 'function forkforget() (
   if test -n "${tydir}"; then
     for fd in "${tydir}"/*; do
       fd="${fd##*/}"
-      case "${fd}" in
-        (*[!0-9]*) ;;
-        (*) fdlist+=( "${fd}" ) ;;
-      esac
+      if ! [[ "${fd}" == *[^0-9]* ]]; then
+        fdlist+=( "${fd}" )
+      fi
     done
   fi
   for fd in "${fdlist[@]}"; do
@@ -269,8 +308,7 @@ emulate -R zsh -c 'function forkforget() (
       exec {fd}>&-
     fi
   done
-  "$@" &!
+  "$@" &|
 )'
-
 
 # vi:et:sts=2:sw=2:tw=0:ft=zsh

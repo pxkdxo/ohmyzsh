@@ -2,123 +2,100 @@
 
 # If this is not an interactive shell, abort.
 case "$-" in
-  (*i*) ;;
-    (*) return ;;
+ (*i*) ;;
+ (*) return ;;
 esac
 
-setopt noallexport
-setopt alwaystoend
-setopt appendcreate
+#########################
+# Changing Directories
+#########################
 setopt autocd
-setopt autocontinue
-setopt autonamedirs
 setopt autopushd
-setopt autoresume
-setopt nobashautolist
-setopt nobashrematch
-setopt nobeep
-setopt braceccl
-setopt nobsdecho
-setopt caseglob
-setopt casepaths
-setopt cbases
 setopt cdablevars
-setopt nochasedots
 setopt chaselinks
-setopt noclobber
-setopt combiningchars
-setopt completealiases
-setopt completeinword
-setopt nocontinueonerror
-setopt correct
-setopt nocorrectall
-setopt nocshjunkiehistory
-setopt nocshjunkieloops
-setopt nocshjunkiequotes
-setopt nocshnullcmd
-setopt nocshnullglob
-setopt extendedglob
-setopt extendedhistory
-setopt noforcefloat
-setopt noglobassign
-setopt globcomplete
-setopt noglobdots
-setopt globstarshort
-setopt noglobsubst
-setopt hashexecutablesonly
-setopt nohistallowclobber
+setopt pushdignoredups
+setopt pushdtohome
+
+#########################
+# Completion
+#########################
+setopt alwaystoend  # move cursor to the end of accpeted completions
+setopt autonamedirs  # alias directories by variables
+# setopt completealiases  # completion instead of expansion
+setopt completeinword  # middle-out completion
+setopt globcomplete  # glob pattern completion
+setopt nolistbeep  # NO BEEPING
+setopt listrowsfirst  # row-oriented listing
+# setopt menucomplete  # *overrides* 'automenu'
+setopt recexact  # auto-accept exact matches
+
+#########################
+# Expansion and Globbing
+#########################
+setopt braceccl  # expand sequence expressions in braces
+setopt extendedglob  # patterns include ‘#', ‘~' and ‘^'
+setopt globassign  # assign matches to variables ... why not
+setopt globstarshort  # **/*,***/* => **,***
+setopt histsubstpattern  # modifiers ':s' and ':&' use pattern matching
+# setopt nullglob  # *overrides* 'nomatch'
+setopt rcexpandparam  # x${a}y => x${a[1]}y x${a[2]}y ... x${a[-1]}y
+setopt rematchpcre  # match PCRE patterns with the '=~' operator
+setopt warnnestedvar  # Nice to be notified
+
+#########################
+# History
+#########################
+setopt histallowclobber  # add '|' to output redirections in history
+setopt nohistbeep  # NO. BEEPING.
 setopt histexpiredupsfirst
 setopt histfcntllock
 setopt histfindnodups
-setopt histignorealldups
+# setopt histignorealldups
 setopt histignoredups
 setopt histignorespace
 setopt histlexwords
-setopt nohistnofunctions
 setopt histnostore
 setopt histreduceblanks
 setopt histsavenodups
-setopt histsubstpattern
 setopt histverify
-setopt noignorebraces
-setopt noignoreclosebraces
-setopt noignoreeof
-setopt noincappendhistory
-setopt noincappendhistorytime
+setopt incappendhistory  # write commands to histfile on execution
+# setopt sharehistory  # 'incappendhistory' and continuous import
+
+#########################
+# Input/Output
+#########################
+setopt noclobber
+setopt correct
 setopt interactivecomments
-setopt noksharrays
-setopt nokshautoload
-setopt nokshglob
-setopt nokshoptionprint
-setopt nokshtypeset
-setopt nokshzerosubscript
-setopt listambiguous
-setopt nolistpacked
-setopt nolocaloptions
+# setopt rmstarsilent
+
+#########################
+# Shell Emulation
+#########################
+setopt appendcreate
+# setopt posixbuiltins
+
+#########################
+# ZLE
+#########################
+setopt nobeep
+setopt combiningchars
+
+#########################
+# Job Control
+#########################
+setopt autocontinue
 setopt longlistjobs
-setopt nomagicequalsubst
-setopt nomailwarning
-setopt nomarkdirs
-setopt nomenucomplete
-setopt nomultifuncdef
-setopt nonullglob
-setopt numericglobsort
-setopt nooctalzeroes
-setopt nooverstrike
-setopt nopathdirs
-setopt nopathscript
-setopt nopipefail
-setopt noposixaliases
-setopt noposixargzero
-setopt noposixbuiltins
-setopt noposixcd
-setopt noposixidentifiers
-setopt noposixjobs
-setopt noposixstrings
-setopt noposixtraps
-setopt noprinteightbit
-setopt noprintexitvalue
+
+#########################
+# Prompting
+#########################
 setopt promptsubst
-setopt pushdignoredups
-setopt nopushdsilent
-setopt pushdtohome
-setopt rcexpandparam
-setopt rcquotes
-setopt norecexact
-setopt rematchpcre
-setopt norestricted
-setopt rmstarsilent
-setopt normstarwait
-setopt sharehistory
-setopt noshfileexpansion
-setopt noshglob
-setopt noshnullcmd
-setopt noshoptionletters
-setopt noshwordsplit
-setopt nosinglecommand
-setopt nosinglelinezle
-setopt nosourcetrace
-setopt nosunkeyboardhack
-setopt notransientrprompt
-# setopt warncreateglobal
-# setopt warnnestedvar
+
+#########################
+# Scripts and Functions
+#########################
+setopt cbases
+setopt nomultifuncdef
+
+# vi: set ft=zsh et sts=2 sw=2
