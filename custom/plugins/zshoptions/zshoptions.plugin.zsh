@@ -25,8 +25,7 @@ setopt autonamedirs  # alias directories by variables
 setopt completeinword  # middle-out completion
 setopt globcomplete  # glob pattern completion
 setopt nolistbeep  # NO BEEPING
-setopt listrowsfirst  # row-oriented listing
-# setopt menucomplete  # *overrides* 'automenu'
+setopt menucomplete  # *overrides* 'automenu'
 setopt recexact  # auto-accept exact matches
 
 #########################
@@ -67,7 +66,7 @@ setopt incappendhistory  # write commands to histfile on execution
 setopt noclobber
 setopt correct
 setopt interactivecomments
-# setopt rmstarsilent
+setopt rmstarsilent  # Living dangerously
 
 #########################
 # Shell Emulation
