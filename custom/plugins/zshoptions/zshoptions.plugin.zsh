@@ -25,7 +25,7 @@ setopt autonamedirs  # alias directories by variables
 setopt completeinword  # middle-out completion
 setopt globcomplete  # glob pattern completion
 setopt nolistbeep  # NO BEEPING
-setopt menucomplete  # *overrides* 'automenu'
+# setopt menucomplete  # *overrides* 'automenu'
 setopt recexact  # auto-accept exact matches
 
 #########################
