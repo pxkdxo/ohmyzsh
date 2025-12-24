@@ -101,9 +101,9 @@ psvar_expressions[pyenv_vers]='__virtualenv_version_info'
 psvar_expressions[pyenv_path]='${VIRTUAL_ENV:h:t}'
 psvar_expressions[dirstack]='[${(j.:.)${(D)dirstack[@]}:t}]'
 
-typeset -g ps_style_words="%U"
+typeset -g ps_style_words=""
 typeset -g ps_style_punct="%B%(?.%8F.%1F)"
-typeset -g ps_style_reset="%f%b%u"
+typeset -g ps_style_reset="%f%b"
 
 typeset -g ps_sep=':'
 
