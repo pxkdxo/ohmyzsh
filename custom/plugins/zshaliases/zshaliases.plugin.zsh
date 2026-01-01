@@ -25,7 +25,7 @@ alias history-load='fc -RI'
 alias sudo='sudo '
 alias -- -A='-A ' --askpass='--askpass '
 alias -- -b='-b ' --background='--background '
-alias -- -H='-H ' --set-home='--set-home'
+alias -- -H='-H ' --set-home='--set-home '
 alias -- -i='-i ' --login='--login '
 alias -- -l='-l ' --list='--list '
 alias -- -n='-n ' --non-interactive='--non-interactive '
@@ -53,47 +53,61 @@ alias lsblk='lsblk --fs --tree'
 
 
 # clear
-alias cl='clear'
+alias c='clear'
 
 
 # dirs
-alias c='cd'
-alias c-='cd -'
-alias d='popd'
-alias -- +='pushd'
-alias -- -='pushd -1'
-function __alias_pushpopdirs() {
-  local -i n m="${DIRSTACKSIZE:-10}"
-  for (( n = 1; i < m; i = i + 1 )); do
-    alias -- "-${n}=cd -${n}"
-    alias -- "+${n}=cd +${n}"
+alias d='cd'
+alias -- '-=cd'
+alias dp='pushd`'
+alias pd='popd'
+alias dd='dirs'
+function __alias_pushd_commands() {
+  local sign=""
+  local -i n=0
+  local -i m="${DIRSTACKSIZE:-10}"
+  if [[ -o pushdminus ]]; then
+    alias -- "+=pushd ${sign:="-"}1"
+  else
+    alias -- "+=pushd ${sign:="+"}1"
+  fi
+  while (( n++ < m )); do
+    alias -- "+$((n))=pushd ${sign}$((n))"
   done
-} && __alias_pushpopdirs
+} && __alias_pushd_commands
 
 
 # jobs
-alias j='jobs -lp'
-
-
-# ls
-alias l='ls'
-alias la='ls -A'
-alias lr='ls -1R'
-alias lt='ls -1t'
-alias lar='ls -1AR'
-alias lat='ls -1At'
-alias lart='ls -1ARt'
-alias ll='ls -l'
-alias lla='ls -Al'
-alias llr='ls -lR'
-alias llt='ls -lt'
-alias llar='ls -lAR'
-alias llat='ls -lAt'
-alias llart='ls -lARt'
+alias jobs='jobs -l'
 
 
 # man
 alias m='man'
+
+
+# ls
+alias l='ls'
+alias ll='ls -l'
+alias la='ls -l -A'
+alias lr='ls -l -R'
+alias lt='ls -l -r -t'
+alias lar='ls -l -A -R'
+alias lat='ls -l -A -r -t'
+alias lart='ls -l -A -r -t -R'
+
+
+# lsd replacement
+if command -v eza > /dev/null; then
+  alias ls='eza'
+elif command -v lsd > /dev/null; then
+  alias ls='lsd'
+fi
+
+
+# less replacement
+if command -v bat > /dev/null; then
+  alias less='bat'
+fi
 
 
 # ps
@@ -101,7 +115,6 @@ typeset -g -x PS_FORMAT="user=UID,pid,ppid,c,stime,tname,time,cmd"
 typeset -g -x PS_PERSONALITY="linux"
 
 alias p='ps'
-alias pp='p -p'
 alias px='p x'
 alias pa='p ax'
 
@@ -144,15 +157,14 @@ elif command -v gtop > /dev/null; then
 fi
 
 
-# ripgre
-alias rg='rg --pretty --follow --no-ignore-global --no-ignore-parent'
-alias rg+='rg --hidden --no-ignore-vcs'
-alias rg!='rg --unrestricted'
+# ripgrep
+alias rg='rg --heading --line-number --follow --hidden --no-ignore-global --no-ignore-parent'
+alias rg+='rg --unrestricted'
+
 
 # fd
-alias fd='fd --follow --no-ignore-parent'
-alias fd+='fd --hidden --no-ignore-vcs'
-alias fd!='fd --unrestricted'
+alias fd='fd --follow --hidden --no-ignore-parent'
+alias fd+='fd --unrestricted'
 
 
 # clipcopy
@@ -224,11 +236,9 @@ fi
 
 
 # query DNS servers for my WAN IP
-alias ipv4-public='dig @resolver1.opendns.com -4 myip.opendns.com +short'
-alias ipv6-public='dig @resolver1.opendns.com -6 myip.opendns.com +short'
-alias ip-public='ipv4-public'
-alias my-ip='ip-public'
-
+alias wanip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
+alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
+alias wanip='wanip4'
 
 
 # tree customization
@@ -261,23 +271,23 @@ function date-iso () {
 # usage: du-tree [du-options] directory
 function du-tree () {
   emulate -LR zsh
-  local tree
+  local root
   local -a -U du_options=(--dereference-args --human-readable --total)
   if test "$#" -lt 1
   then
     >&2 printf 'usage: du-tree [du-options] directory\n' 
     return 2
   fi
-  tree="${@[-1]}"
+  root="${@[-1]}"
   du_options+=("${@:1:-1}")
-  du "${du_options[@]}" "${tree}" | sort -h -b --key "1,1"
+  du "${du_options[@]}" "${root}" | sort -h -b --key "1,1"
 }
 
 
 # Close file descriptors and spin up background processes with
 # end-of-line aliases
 alias -g '@='='< /dev/null > /dev/null 2>&1'
-alias -g '@%'='< /dev/null > /dev/null 2>&1 &'
+alias -g '@+'='< /dev/null > /dev/null 2>&1 &'
 alias -g '@!'='< /dev/null > /dev/null 2>&1 &!'
 
 
