@@ -14,6 +14,7 @@ setopt autopushd
 setopt cdablevars
 setopt chaselinks
 setopt pushdignoredups
+setopt pushdminus
 setopt pushdtohome
 
 #########################
@@ -66,7 +67,7 @@ setopt incappendhistory  # write commands to histfile on execution
 setopt noclobber
 setopt correct
 setopt interactivecomments
-setopt rmstarsilent  # Living dangerously
+# setopt rmstarsilent  # Living dangerously
 
 #########################
 # Shell Emulation
@@ -94,7 +95,7 @@ setopt promptsubst
 #########################
 # Scripts and Functions
 #########################
-setopt cbases
+# setopt cbases
 setopt nomultifuncdef
 
 # vi: set ft=zsh et sts=2 sw=2

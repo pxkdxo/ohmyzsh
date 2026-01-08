@@ -43,10 +43,10 @@ function __virtualenv_version_info() {
   local retval="$?"
   emulate -LR zsh
   setopt extendedglob
-  local pyenvcfg_file="${VIRTUAL_ENV:+${VIRTUAL_ENV}/pyvenv.cfg}"
-  local pyenvcfg_lines=("${(@f)$(<"${pyenvcfg_file:-/dev/null}")}")
-  local -A pyenvcfg=("${(@SM)${(@fs.=.)pyenvcfg_lines}[@]##[[:graph:]]*[[:graph:]]}")
-  printf '%s\n' "${pyenvcfg[version]:-UNKNOWN}"
+  local pyvenvcfg_file="${VIRTUAL_ENV:+${VIRTUAL_ENV}/pyvenv.cfg}"
+  local pyvenvcfg_lines=("${(@f)$(<"${pyvenvcfg_file:-/dev/null}")}")
+  local -A pyvenvcfg=("${(@SM)${(@fs.=.)pyvenvcfg_lines}[@]##[[:graph:]]*[[:graph:]]}")
+  printf '%s\n' "${pyvenvcfg[version_info]:-UNKNOWN}"
   return "${retval}"
 } 2> /dev/null
 

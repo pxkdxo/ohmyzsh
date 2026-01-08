@@ -15,7 +15,7 @@ function ctags-all() (
   dirs -- "${1:-.}"
   while popd -q 2> /dev/null
   do
-    ctags -f .tags -R 
+    ctags -f .tags -R
     dirstack+=(*(/-N:a))
   done
 )

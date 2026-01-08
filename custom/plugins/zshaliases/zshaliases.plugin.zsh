@@ -1,25 +1,22 @@
 # zshaliases.plugin.zsh: aliases for an interactive shell
 
-
-# If this is not an interactive shell, abort.
-case $- in
-  (*i*) ;;
-    (*) return ;;
-esac
-
-
 # show alias expansion before command execution
-function __preexec_printex() {
+function __preexec_print_expansion() {
   emulate -LR zsh
   case "$1" in "$2"*) return ;; esac
-  case "$2" in "$1"*) return ;; esac
-  printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" >&2
-} && autoload -Uz add-zsh-hook && add-zsh-hook preexec __preexec_printex
+    case "$2" in "$1"*) return ;; esac
+    printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" >&2
+  }
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec __preexec_print_expansion
 
+# Close standard streams (@+) and send commands to the background (@!)
+alias -g '@+'='< /dev/null > /dev/null 2>&1 '
+alias -g '@!'='< /dev/null > /dev/null 2>&1 &' 
 
 # history shortcuts
-alias history-load='fc -RI'
-
+alias h='history'
+alias hr='fc -RI'
 
 # sudo aliases to expand command aliases that follow
 alias sudo='sudo '
@@ -32,7 +29,6 @@ alias -- -n='-n ' --non-interactive='--non-interactive '
 alias -- -P='-P ' --preservce-group='--preserve-groups '
 alias -- -s='-s ' --shell='--shell '
 alias -- -S='-S ' --stdin='--stdin '
-
 
 # default options
 alias cp='cp -iv'
@@ -51,10 +47,8 @@ alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias lsblk='lsblk --fs --tree'
 
-
 # clear
 alias c='clear'
-
 
 # dirs
 alias d='cd'
@@ -76,14 +70,11 @@ function __alias_pushd_commands() {
   done
 } && __alias_pushd_commands
 
-
 # jobs
 alias jobs='jobs -l'
 
-
 # man
 alias m='man'
-
 
 # ls
 alias l='ls'
@@ -95,7 +86,6 @@ alias lar='ls -l -A -R'
 alias lat='ls -l -A -r -t'
 alias lart='ls -l -A -r -t -R'
 
-
 # lsd replacement
 if command -v eza > /dev/null; then
   alias ls='eza'
@@ -103,12 +93,10 @@ elif command -v lsd > /dev/null; then
   alias ls='lsd'
 fi
 
-
 # less replacement
 if command -v bat > /dev/null; then
   alias less='bat'
 fi
-
 
 # ps
 typeset -g -x PS_FORMAT="user=UID,pid,ppid,c,stime,tname,time,cmd"
@@ -118,14 +106,12 @@ alias p='ps'
 alias px='p x'
 alias pa='p ax'
 
-
 # pstree
 if command -v pstree > /dev/null; then
   alias pstree='pstree -p'
 else
   alias pstree='ps x --forest'
 fi
-
 
 # python
 alias py='python'
@@ -137,8 +123,7 @@ then
   alias python='python3'
 fi
 
-
-# vim / neovim
+# vim
 alias v='vim'
 if command -v nvim > /dev/null; then
   alias vim='nvim'
@@ -146,6 +131,9 @@ if command -v nvim > /dev/null; then
   alias vimdiff='nvimdiff'
 fi
 
+# docker
+alias docker_killall='docker container kill --all'
+alias docker_rmall='docker container rm --all --ignore --volumes'
 
 # top
 if command -v btm > /dev/null; then
@@ -156,16 +144,13 @@ elif command -v gtop > /dev/null; then
   alias top='gtop'
 fi
 
-
 # ripgrep
 alias rg='rg --heading --line-number --follow --hidden --no-ignore-global --no-ignore-parent'
 alias rg+='rg --unrestricted'
 
-
 # fd
 alias fd='fd --follow --hidden --no-ignore-parent'
 alias fd+='fd --unrestricted'
-
 
 # clipcopy
 if [[ "${(L)OSTYPE:-$(uname -s 2> /dev/null)}" == darwin* ]] && command -v pbcopy > /dev/null; then
@@ -186,23 +171,33 @@ elif command -v clipcopy > /dev/null; then
 fi
 alias pbfmt="pbpaste | pbcopy"
 
+# feh
+if command -v feh > /dev/null; then
+  alias feh-slideshow='feh --auto-zoom --image-bg black --slideshow-delay 8'
+fi
+
+# query DNS servers for my WAN IP
+alias wanip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
+alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
+alias wanip='wanip4'
 
 # tmux
 if command -v tmux > /dev/null; then
   alias tm='tmux'
-  alias tma='tmux attach-session -f ignore-size'
-  alias tms='tmux new-session'
-  alias tmw='tmux new-window'
-  alias tml='tmux list-sessions' 
-  function tmux-session-window() {
+  alias ta='tmux attach-session -f ignore-size'
+  alias tn='tmux new-session'
+  alias tl='tmux list-sessions'
+  function tmux-new-session-window()
+  {
     if (($# != 1)); then
-      >&2 printf 'usage: tmux-session-window SESSION_NAME\n' 
+      >&2 printf 'usage: tmux-new-session-window SESSION_NAME\n' 
       return 2
     fi
     tmux new-session -d -t "$1" \; new-window \; attach-session
   }
+  alias tnsw='tmux-session-window'
   if command -v fzf > /dev/null; then
-    function fzf-tmux-session-window() {
+    function fzf-tmux-new-session-window() {
       emulate -LR zsh
       local session_group
       local fzf=(
@@ -216,56 +211,37 @@ if command -v tmux > /dev/null; then
         --info-command='tmux list-panes -F '$'* #S:#I.#P\t#W:#T'' -a'
         --preview-window='bottom,80%,border-sharp,nowrap,nocycle,noinfo'
         --preview='tmux capture-pane -p -e -J -t {}'
+        --query="$1"
       )
       tmux has-session &&
         session_group="$(tmux list-sessions -F "#S" | sort -u | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${fzf[@]}")" &&
         [[ -n "${session_group}" ]] &&
         tmux new-session -d -t "${session_group}" \; new-window \; attach-session
-    }
-    alias tmsw='fzf-tmux-session-window'
+      }
+    alias tmsw='fzf-tmux-new-session-window'
   else
-    alias tmsw='tmux-session-window'
   fi
 fi
 
-
-# feh
-if command -v feh > /dev/null; then
-  alias feh-slideshow='feh --auto-zoom --image-bg black --slideshow-delay 8'
-fi
-
-
-# query DNS servers for my WAN IP
-alias wanip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
-alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
-alias wanip='wanip4'
-
-
 # tree customization
 if command -v tree > /dev/null; then
-  typeset -xT TREE tree ' '
-  tree=(-F -l -v --dirsfirst --filelimit 10000 -C -L 5)
-  function tree {
+  tree () {
     emulate -LR zsh
-    local -a opts=( "$@" )
+    local -a args=("$@")
     local -T TREE="${TREE}" tree " "
-    local -a base=( -F -l -v --dirsfirst --filelimit 10000 --gitignore )
-    local ignore_from=( "${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N) )
-    local ignore_list=( "${(f)$(< "${ignore_from[@]-/dev/null}")}" ) 2> /dev/null
-    if test "${#ignore_list[@]}" -gt 0; then
-      base+=( -I "(${(j:|:)ignore_list[@]%%(\/##\*#)#})" "${opts[@]}" )
+    local -a base=(-F -l -v --dirsfirst)
+    local -a ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N))
+    local -a ignore_list=("${(f)$(grep '^[[:space:]]*[^#[:space:]].*' "${ignore_from[@]-/dev/null}")}") 2>| /dev/null
+    args=("${tree[@]:|args}" "${args[@]}")
+    args=("${base[@]:|args}" "${args[@]}")
+    if test "${#ignore_list[@]}" -gt 0
+    then
+      args=("-I" "(${(j:|:)ignore_list[@]%%(\/##\*#)#})" "${args[@]}")
     fi
-    command tree "${base[@]}" "${tree[@]}" "${opts[@]}"
+    command tree "${args[@]}"
   }
+  typeset -xT TREE tree=(-F -l -v --gitignore --dirsfirst --filelimit 10000 -C -L 5) ' '
 fi
-
-
-# date-iso - print the date and time in ISO 8601 format up to the given precision (default: seconds)
-# usage: date-iso [date|hours|minutes|seconds|ns]
-function date-iso () {
-  date --iso-8601="${1-seconds}" "${@:2}"
-}
-
 
 # du-tree - show a summary of disk usage for a directory tree - from root to leaves
 # usage: du-tree [du-options] directory
@@ -283,19 +259,11 @@ function du-tree () {
   du "${du_options[@]}" "${root}" | sort -h -b --key "1,1"
 }
 
-
-# Close file descriptors and spin up background processes with
-# end-of-line aliases
-alias -g '@='='< /dev/null > /dev/null 2>&1'
-alias -g '@+'='< /dev/null > /dev/null 2>&1 &'
-alias -g '@!'='< /dev/null > /dev/null 2>&1 &!'
-
-
 # Launch and forget you even started a command in the background.
 # Try to close all the file descriptors connected to a terminal.
 # Redirect stidin/stdout/stderr to pipes if you want to provide
 # input or capture output.
-emulate -R zsh -c 'function forkforget() (
+emulate -R zsh -c 'function forknforget() (
   local fdlist=( 0 1 2 ) 
   local tydir=""
   local ty
@@ -319,6 +287,6 @@ emulate -R zsh -c 'function forkforget() (
     fi
   done
   "$@" &|
-)'
+    )'
 
 # vi:et:sts=2:sw=2:tw=0:ft=zsh

@@ -19,6 +19,10 @@
 #   DIRECTORY: target directory
 #######################################
 function cdls() {
+  if (( "$#" < 1 )); then
+    echo "cdls: too few arguments" >&2
+    return 2
+  fi
   cd -- "${(P)#}" && ls "${@:1:-1}"
 }
 
@@ -26,12 +30,16 @@ function cdls() {
 #######################################
 # mkcd - create a directory and enter it
 # Usage:
-#   mkcd [MKDIR_OPTIONS] DIRECTORY
+#   mkcd DIRECTORY
 # Arguments:
 #   DIRECTORY: target directory
 #######################################
 function mkcd() {
-  mkdir "${@:1}" && cd -- "${(P)#}"
+  if (( "$#" < 1 )); then
+    echo "mkcd: too few arguments" >&2
+    return 2
+  fi
+  mkdir -p "$@" && cd -- "${(P)#}"
 }
 
 
@@ -44,7 +52,11 @@ function mkcd() {
 #   DIRECTORY: destination
 #######################################
 function mkmv() {
-  mkdir -- "${(P)#}" && mv "$@"
+  if (( "$#" < 1 )); then
+    echo "mkmv: too few arguments" >&2
+    return 2
+  fi
+  mkdir -p -- "${(P)#}" && mv "$@"
 }
 
 
@@ -57,5 +69,9 @@ function mkmv() {
 #   DIRECTORY: destination
 #######################################
 function mkcp() {
-  mkdir -- "${(P)#}" && cp "$@"
+  if (( "$#" < 1 )); then
+    echo "mkcp: too few arguments" >&2
+    return 2
+  fi
+  mkdir -p -- "${(P)#}" && cp "$@"
 }
