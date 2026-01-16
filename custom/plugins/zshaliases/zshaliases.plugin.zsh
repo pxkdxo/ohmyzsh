@@ -184,48 +184,6 @@ alias wanip4='dig @resolver1.opendns.com -4 myip.opendns.com +short'
 alias wanip6='dig @resolver1.opendns.com -6 myip.opendns.com +short'
 alias wanip='wanip4'
 
-# tmux
-if command -v tmux > /dev/null; then
-  alias tm='tmux'
-  alias ta='tmux attach-session -f ignore-size'
-  alias tn='tmux new-session'
-  alias tl='tmux list-sessions'
-  function tmux-new-session-window()
-  {
-    if (($# != 1)); then
-      >&2 printf 'usage: tmux-new-session-window SESSION_NAME\n' 
-      return 2
-    fi
-    tmux new-session -d -t "$1" \; new-window \; attach-session
-  }
-  alias tnsw='tmux-session-window'
-  if command -v fzf > /dev/null; then
-    function fzf-tmux-new-session-window() {
-      emulate -LR zsh
-      local session_group
-      local fzf=(
-        "${(z)$(__fzfcmd):-fzf}"
-        --cycle
-        --exit-0
-        --select-1
-        --height=65%
-        --min-height=5+
-        --info=right
-        --info-command='tmux list-panes -F '$'* #S:#I.#P\t#W:#T'' -a'
-        --preview-window='bottom,80%,border-sharp,nowrap,nocycle,noinfo'
-        --preview='tmux capture-pane -p -e -J -t {}'
-        --query="$1"
-      )
-      tmux has-session &&
-        session_group="$(tmux list-sessions -F "#S" | sort -u | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${fzf[@]}")" &&
-        [[ -n "${session_group}" ]] &&
-        tmux new-session -d -t "${session_group}" \; new-window \; attach-session
-      }
-    alias tmsw='fzf-tmux-new-session-window'
-  else
-  fi
-fi
-
 # tree customization
 if command -v tree > /dev/null; then
   tree () {
@@ -261,6 +219,71 @@ function du-tree () {
   du_options+=("${@:1:-1}")
   du "${du_options[@]}" "${root}" | sort -h -b --key "1,1"
 }
+
+# tmux
+if command -v tmux > /dev/null; then
+  alias tm='tmux'
+  alias ta='tmux attach-session -f ignore-size'
+  alias tl='tmux list-sessions'
+  alias tn='tmux_new_session_window'
+  function tmux_new_session_window() {
+    emulate -LR zsh
+    local session=""
+    if test "$#" -gt 1; then
+      >&2 printf 'usage: %s SESSION_NAME\n' "${0##*/}"
+      return 2
+    fi
+    if ! tmux has-session; then
+      >&2 printf '%s: tmux: no sessions\n' "${0##*/}"
+      return 1
+    fi
+    if test "$#" -lt 1; then
+      if ! session="$(
+        if command -v fzf > /dev/null; then
+          __tmux_new_session_window_fzf
+        else
+          __tmux_new_session_window
+        fi)"
+      then
+        return 1
+      fi
+    else
+      session="$1"
+    fi
+    tmux new-session -d -t "${session}" \; new-window \; attach-session
+  }
+  function __tmux_new_session_window() {
+    emulate -R zsh
+    tmux list-sessions -F "#S" | {
+      if ! read -r REPLY; then
+        >&2 printf '%s: tmux: no sessions\n' "${0##*/}"
+        return 1
+      fi
+      if read -r _; then
+        >&2 printf '%s: tmux: multiple sessions - please specify\n' "${0##*/}"
+        return 1
+      fi
+      printf '%s\n' "${REPLY}"
+    }
+  }
+  function __tmux_new_session_window_fzf() {
+    emulate -R zsh
+    local fzf=(
+      "${(z)$(__fzfcmd):-fzf}"
+      --cycle
+      --exit-0
+      --select-1
+      --height=65%
+      --min-height=5+
+      --info=right
+      --info-command='tmux list-panes -F * #S:#I.#P'$'\t''#W:#T -a'
+      --preview-window='bottom,80%,border-sharp,nowrap,nocycle,noinfo'
+      --preview='tmux capture-pane -p -e -J -t {}'
+      --query="$1"
+    )
+    tmux list-sessions -F "#S" | sort -u | FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}" "${fzf[@]}"
+  }
+fi
 
 # Launch and forget you even started a command in the background.
 # Try to close all the file descriptors connected to a terminal.
