@@ -1,18 +1,23 @@
 # zshaliases.plugin.zsh: aliases for an interactive shell
 
 # show alias expansion before command execution
+emulate -R zsh -c '
 function __preexec_print_expansion() {
-  emulate -LR zsh
-  case "$1" in "$2"*) return ;; esac
-    case "$2" in "$1"*) return ;; esac
-    printf '\e[0;1;3;30m ↪\e[0m \e[2m%s\e[0m\n' "$2" >&2
-  }
+  case "$1" in
+    "$3"*)
+      ;;
+    *)
+      >&2 printf '\''\033[0m \033[0;1;3;30m%s\033[0m \033[2m%s\033[0m\n'\'' '\''↪'\'' "$3"
+      ;;
+  esac
+}'
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec __preexec_print_expansion
 
 # Close standard streams (@+) and send commands to the background (@!)
 alias -g '@+'='< /dev/null > /dev/null 2>&1 '
-alias -g '@!'='< /dev/null > /dev/null 2>&1 &' 
+alias -g '@%'='< /dev/null > /dev/null 2>&1 &' 
+alias -g '@!'='< /dev/null > /dev/null 2>&1 &!' 
 
 # history shortcuts
 alias h='history'
@@ -32,7 +37,7 @@ alias -- -S='-S ' --stdin='--stdin '
 
 # default options
 alias cp='cp -iv'
-alias df='df -h'
+alias df='df -h -x tmpfs'
 alias diff='diff --color=auto'
 alias dir='dir --color=auto'
 alias egrep='egrep --color=auto'
@@ -47,25 +52,24 @@ alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias lsblk='lsblk --fs --tree'
 
-# clear
-alias c='clear'
+# cd
+alias -- c='cd'
+alias -- -='cd -'
 
 # dirs
-alias d='cd'
-alias -- '-=cd'
-alias dp='pushd`'
-alias pd='popd'
-alias dd='dirs'
+alias -- d='dirs'
+alias -- --='popd'
+alias -- ++='pushd'
 function __alias_pushd_commands() {
-  local sign=""
+  local sign
   local -i n=0
-  local -i m="${DIRSTACKSIZE:-10}"
+  local -i m=${DIRSTACKSIZE:-10}
   if [[ -o pushdminus ]]; then
-    alias -- "+=pushd ${sign:="-"}1"
+    sign="-"
   else
-    alias -- "+=pushd ${sign:="+"}1"
+    sign="+"
   fi
-  while (( n++ < m )); do
+  while (( n += 1, n < m )); do
     alias -- "+$((n))=pushd ${sign}$((n))"
   done
 } && __alias_pushd_commands
@@ -80,11 +84,10 @@ alias m='man'
 alias l='ls'
 alias ll='ls -l'
 alias la='ls -l -A'
-alias lr='ls -l -R'
-alias lt='ls -l -r -t'
-alias lar='ls -l -A -R'
-alias lat='ls -l -A -r -t'
-alias lart='ls -l -A -r -t -R'
+alias lt='ls -l --sort=time'
+alias lrt='ls -l --sort=time -r'
+alias lat='ls -l -A --sort=time'
+alias lart='ls -l -A --sort=time -r'
 
 # lsd replacement
 if command -v eza > /dev/null; then
