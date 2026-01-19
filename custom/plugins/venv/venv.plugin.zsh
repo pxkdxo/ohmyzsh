@@ -1,6 +1,8 @@
 # venv.plugin.zsh
 #
-# Set up a hook that offers to load any venv found on the path to our working directory
+# Detect and offer to load Python virtual environments found along the path of the current working directory.
+# Automatically deactivate environments when they are no longer along the path to the current working directory.
+
 
 # https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
 0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
@@ -34,7 +36,6 @@ function __venv_hook() {
     if typeset -f activate > /dev/null; then
       unset -f activate
     fi
-    return 0
   fi
   venv="${REPLY}"
   if [[ "${venv}" == "${VIRTUAL_ENV}"  ]]; then
