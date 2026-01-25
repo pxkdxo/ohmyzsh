@@ -148,7 +148,6 @@ elif command -v gtop > /dev/null; then
 fi
 
 # ripgrep
-alias rg='rg --heading --line-number --follow --hidden --no-ignore-global --no-ignore-parent'
 alias rg+='rg --unrestricted'
 
 # fd
