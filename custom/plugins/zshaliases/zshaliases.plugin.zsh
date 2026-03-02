@@ -57,7 +57,7 @@ alias -- c='cd'
 alias -- -='cd -'
 
 # dirs
-alias -- d='dirs'
+alias -- ds='dirs'
 alias -- --='popd'
 alias -- ++='pushd'
 function __alias_pushd_commands() {
@@ -77,9 +77,6 @@ function __alias_pushd_commands() {
 # jobs
 alias jobs='jobs -l'
 
-# man
-alias m='man'
-
 # ls
 alias l='ls'
 alias ll='ls -l'
@@ -89,14 +86,14 @@ alias lrt='ls -l --sort=time -r'
 alias lat='ls -l -A --sort=time'
 alias lart='ls -l -A --sort=time -r'
 
-# lsd replacement
+# ls replacement
 if command -v eza > /dev/null; then
   alias ls='eza'
 elif command -v lsd > /dev/null; then
   alias ls='lsd'
 fi
 
-# less replacement
+# less replacement (wrapper, really)
 if command -v bat > /dev/null; then
   alias less='bat'
 fi
@@ -135,8 +132,8 @@ if command -v nvim > /dev/null; then
 fi
 
 # docker
-alias docker_killall='docker container kill --all'
-alias docker_rmall='docker container rm --all --ignore --volumes'
+alias docker-kill-all='docker container kill --all'
+alias docker-rm-all='docker container rm --all --ignore --volumes'
 
 # top
 if command -v btm > /dev/null; then
