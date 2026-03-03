@@ -96,6 +96,5 @@ setopt promptsubst
 # Scripts and Functions
 #########################
 # setopt cbases
-setopt nomultifuncdef
 
 # vi: set ft=zsh et sts=2 sw=2
