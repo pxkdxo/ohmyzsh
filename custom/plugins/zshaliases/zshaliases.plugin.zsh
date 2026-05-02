@@ -16,8 +16,8 @@ add-zsh-hook preexec __preexec_print_expansion
 
 # Close standard streams (@+) and send commands to the background (@!)
 alias -g '@+'='< /dev/null > /dev/null 2>&1 '
-alias -g '@%'='< /dev/null > /dev/null 2>&1 &' 
-alias -g '@!'='< /dev/null > /dev/null 2>&1 &!' 
+alias -g '@%'='< /dev/null > /dev/null 2>&1 &'
+alias -g '@!'='< /dev/null > /dev/null 2>&1 &!'
 
 # history shortcuts
 alias h='history'
@@ -51,6 +51,9 @@ alias rm='rm -Iv'
 alias rmdir='rmdir -v'
 alias vdir='vdir --color=auto'
 alias lsblk='lsblk --fs --tree'
+
+# clear
+alias cl='clear'
 
 # cd
 alias -- c='cd'
@@ -208,7 +211,7 @@ function du-tree () {
   local -a -U du_options=(--dereference-args --human-readable --total)
   if test "$#" -lt 1
   then
-    >&2 printf 'usage: du-tree [du-options] directory\n' 
+    >&2 printf 'usage: du-tree [du-options] directory\n'
     return 2
   fi
   root="${@[-1]}"
@@ -286,7 +289,7 @@ fi
 # Redirect stidin/stdout/stderr to pipes if you want to provide
 # input or capture output.
 emulate -R zsh -c 'function forknforget() (
-  local fdlist=( 0 1 2 ) 
+  local fdlist=( 0 1 2 )
   local tydir=""
   local ty
   local fd
@@ -309,6 +312,6 @@ emulate -R zsh -c 'function forknforget() (
     fi
   done
   "$@" &|
-    )'
+)'
 
 # vi:et:sts=2:sw=2:tw=0:ft=zsh
