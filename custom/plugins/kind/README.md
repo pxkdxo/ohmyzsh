@@ -1,3 +1,0 @@
-# kind
-
-kind completion
