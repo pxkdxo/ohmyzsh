@@ -8,9 +8,9 @@
 0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
 
-# Soace & tab
+# Space & tab
 bindkey " " magic-space
-# bindkey "^[[Z" reverse-menu-complete
+bindkey "^[[Z" reverse-menu-complete
 
 # Arrows
 bindkey "^[OA" up-line-or-history
@@ -47,28 +47,34 @@ bindkey "^^" redo
 bindkey "^_" undo
 
 # Keypad
-bindkey "^[[7~" beginning-of-line
-bindkey "^[[8~" end-of-line
-bindkey "^[[H" beginning-of-line
-bindkey "^[[8~" end-of-line
-bindkey "^[[F" end-of-line
+bindkey "^[[7~"   beginning-of-line
+bindkey "^[[8~"   end-of-line
+bindkey "^[[H"    beginning-of-line
+bindkey "^[[F"    end-of-line
+bindkey "^[[3~"   delete-char
+bindkey "^[[3;5~" kill-word
+
+# zsh-syntax-highlighting only recognizes a hardcoded set of built-in widgets;
+# wrapping these makes them user-defined and therefore handled without warnings.
+function _keybindings_glob_expand_word() { zle glob-expand-word }
+function _keybindings_list_expand()      { zle list-expand      }
+zle -N _keybindings_glob_expand_word
+zle -N _keybindings_list_expand
 
 # Meta
-bindkey "^[q" push-input
-bindkey "^[g" get-line
-bindkey "^[]" push-input
-bindkey "^[[" get-line
+bindkey "^[q"  push-input
+bindkey "^[g"  get-line
+bindkey "^[r"  history-incremental-pattern-search-backward
+bindkey "^[s"  history-incremental-pattern-search-forward
+bindkey "^[e"  _keybindings_glob_expand_word
+bindkey "^[^e" _keybindings_list_expand
 
 # CSI-u
 bindkey "^[[127;2u" backward-delete-char
+bindkey "^[[127;3u" backward-kill-word
 bindkey "^[[127;5u" backward-kill-line
-bindkey "^[[13;2u" accept-line
-bindkey "^[[27;2u" run-help
-bindkey "^[[32;2u" magic-space
-
-# Two-stroke
-bindkey "^x^r" history-incremental-pattern-search-backward
-bindkey "^x^s" history-incremental-pattern-search-forward
+bindkey "^[[13;2u"  accept-line
+bindkey "^[[27;2u"  run-help
 
 # Menu selection navigation: enable hjkl and common abort keys when in completion menu
 bindkey -M menuselect 'h' backward-char

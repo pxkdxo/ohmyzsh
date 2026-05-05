@@ -134,10 +134,6 @@ if command -v nvim > /dev/null; then
   alias vimdiff='nvimdiff'
 fi
 
-# docker
-alias docker-kill-all='docker container kill --all'
-alias docker-rm-all='docker container rm --all --ignore --volumes'
-
 # top
 if command -v btm > /dev/null; then
   alias top='btm'

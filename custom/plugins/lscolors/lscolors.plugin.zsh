@@ -39,6 +39,6 @@ typeset -gxT LS_COLORS="${LS_COLORS:-}" ls_colors ":"
         return
       fi
     done
-    eval"$(dircolors -b)"
+    eval "$(dircolors -b)"
   fi
 }

@@ -178,6 +178,12 @@ function __venv_hook() {
     return 0
   fi
 
+  # Venvs in $HOME are personal baselines; prompting would just add friction.
+  if [[ "${nearest:h}" == "${HOME}" ]]; then
+    __venv_do_activate "${nearest}"
+    return 0
+  fi
+
   if __venv_prompt "${nearest}"; then
     __venv_do_activate "${nearest}"
   elif [[ -n "${_VENV_PLUGIN_DISABLED}" ]]; then
