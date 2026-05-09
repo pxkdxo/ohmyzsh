@@ -23,20 +23,21 @@ typeset -g _VENV_PLUGIN_DECLINED=""
 typeset -g _VENV_PLUGIN_DISABLED=""
 
 
-# Print the (qD)-abbreviated, shell-quoted form of $1 to stdout.
+# Print the shell-quoted, $HOME-abbreviated form of $1 to stdout.
 #
-# (D) substitutes a leading directory with `~name` if it matches `hash -d`
-# entries, $HOME, or any named parameter whose value equals that directory.
-# That last case is a footgun under dynamic scoping: a caller-local like
-# `REPLY=/path/to/.venv` would cause (D) to print `~REPLY`. Shadow the
-# common offenders with empty values so they can't win the name match.
+# Avoids ${(qD)...}: the (D) flag matches any named parameter whose value
+# equals the path (including globals like REPLY), producing spurious output
+# like `~REPLY`. Manual $HOME substitution is immune to that scope leakage.
 function __venv_abbrev() {
   emulate -LR zsh
-  # Shadow every caller-local in the plugin that may hold a path equal to
-  # the one being abbreviated. Keep this in sync if you add a new local
-  # path-valued variable in any of the helpers below.
-  local REPLY= nearest= target= abs= venv= start= _abbrev= _quoted=
-  print -r -- "${(qD)1}"
+  local __p="${1}"
+  if [[ "${__p}" == "${HOME}" ]]; then
+    print -r -- '~'
+  elif [[ "${__p}" == "${HOME}/"* ]]; then
+    print -r -- "~/${(q)__p#"${HOME}/"}"
+  else
+    print -r -- "${(q)__p}"
+  fi
 }
 
 
