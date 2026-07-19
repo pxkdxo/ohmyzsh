@@ -185,18 +185,16 @@ if command -v tree > /dev/null; then
     emulate -LR zsh
     local -a args=("$@")
     local -T TREE="${TREE}" tree " "
-    local -a base=(-F -l -v --dirsfirst)
     local -a ignore_from=("${XDG_CONFIG_HOME:-${HOME}/.config}"/git/ignore(-.N))
     local -a ignore_list=("${(f)$(grep '^[[:space:]]*[^#[:space:]].*' "${ignore_from[@]-/dev/null}")}") 2>| /dev/null
-    args=("${tree[@]:|args}" "${args[@]}")
-    args=("${base[@]:|args}" "${args[@]}")
+    args=("${tree[@]}" "${args[@]}")
     if test "${#ignore_list[@]}" -gt 0
     then
       args=("-I" "(${(j:|:)ignore_list[@]%%(\/##\*#)#})" "${args[@]}")
     fi
     command tree "${args[@]}"
   }
-  typeset -xT TREE tree=(-F -l -v --gitignore --dirsfirst --filelimit 10000 -C -L 5) ' '
+  typeset -xT TREE tree=(-F -l -v --gitignore --dirsfirst --filelimit 10000 -L 5) ' '
 fi
 
 # du-tree - show a summary of disk usage for a directory tree - from root to leaves
