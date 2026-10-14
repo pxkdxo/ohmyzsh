@@ -21,6 +21,15 @@ function _configure_eza() {
   if zstyle -t ':omz:plugins:eza' 'header'; then
     _EZA_HEAD+=("h")
   fi
+  if zstyle -t ':omz:plugins:eza' 'links'; then
+    _EZA_HEAD+=("H")
+  fi
+  if zstyle -t ':omz:plugins:eza' 'octal'; then
+    _EZA_HEAD+=("o")
+  fi
+  if zstyle -t ':omz:plugins:eza' 'inodes'; then
+    _EZA_HEAD+=("i")
+  fi
   zstyle -s ':omz:plugins:eza' 'size-prefix' _val
   case "${_val:l}" in
     binary)
@@ -52,8 +61,13 @@ function _configure_eza() {
   if [[ $_val ]]; then
     _EZA_TAIL+=("--time-style='$_val'")
   fi
-  if zstyle -t ":omz:plugins:eza" "hyperlink"; then
-    _EZA_TAIL+=("--hyperlink")
+  if zstyle -t ':omz:plugins:eza' 'hyperlink'; then
+    # eza >= 0.23 needs an explicit WHEN value
+    if command eza --hyperlink=auto --version &>/dev/null; then
+      _EZA_TAIL+=("--hyperlink=auto")
+    else
+      _EZA_TAIL+=("--hyperlink")
+    fi
   fi
 }
 
